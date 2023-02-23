@@ -187,7 +187,7 @@ else()
   )
 endif()
 
-set(SERVER_EXECUTABLE DDNet-Server CACHE STRING "Name of the built server executable")
+set(SERVER_EXECUTABLE mmotee_srv CACHE STRING "Name of the built server executable")
 set(CLIENT_EXECUTABLE DDNet CACHE STRING "Name of the build client executable")
 
 ########################################################################
@@ -369,6 +369,20 @@ endif()
 ########################################################################
 # COMMON FUNCTIONS
 ########################################################################
+
+function(mmo_dir_list GLOBBING EXTS DIRECTORY VARIABLE)
+  set(GLOBS)
+  foreach(ext ${EXTS})
+    list(APPEND GLOBS "${DIRECTORY}/*.${ext}")
+  endforeach()
+  file(${GLOBBING} GLOB_RESULT ${GLOBS})
+  set(GLOB_RESULT_CUT)
+  foreach(file ${GLOB_RESULT})
+    string(REPLACE "${PROJECT_SOURCE_DIR}/${DIRECTORY}/" "" CUT_PATH ${file})
+    list(APPEND GLOB_RESULT_CUT "${CUT_PATH}")
+  endforeach()
+  set("${VARIABLE}_GLOB_RESULT_CUT" ${GLOB_RESULT_CUT} PARENT_SCOPE)
+endfunction()
 
 function(set_glob VAR GLOBBING EXTS DIRECTORY) # ...
   set(GLOBS)
@@ -2445,6 +2459,8 @@ endif()
 ########################################################################
 
 if(SERVER)
+  mmo_dir_list(GLOB_RECURSE "c;cpp;h;hpp" "src/game/server/mmo" GAME_SERVER_MMO)
+
   # Sources
   set_src(ANTIBOT_SRC GLOB src/antibot
     antibot_data.h
@@ -2477,6 +2493,7 @@ if(SERVER)
     upnp.cpp
     upnp.h
   )
+
   set_src(GAME_SERVER GLOB_RECURSE src/game/server
     alloc.h
     ddracechat.cpp
@@ -2533,7 +2550,11 @@ if(SERVER)
     "src/game/generated/server_data.h"
     "src/game/generated/wordlist.h"
   )
-  set(SERVER_SRC ${ENGINE_SERVER} ${GAME_SERVER} ${GAME_GENERATED_SERVER})
+
+  set_src(GAME_SERVER_MMO GLOB_RECURSE src/game/server/mmo
+          ${GAME_SERVER_MMO_GLOB_RESULT_CUT}
+          )
+  set(SERVER_SRC ${ENGINE_SERVER} ${GAME_SERVER} ${GAME_GENERATED_SERVER} ${GAME_SERVER_MMO})
   if(TARGET_OS STREQUAL "windows")
     set(SERVER_ICON "other/icons/DDNet-Server.rc")
   else()

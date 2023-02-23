@@ -2,7 +2,7 @@
 
 #include <sqlite3.h>
 
-#include <base/math.h>
+#include <cmath>
 #include <engine/console.h>
 
 #include <atomic>
@@ -66,7 +66,7 @@ private:
 	sqlite3_stmt *m_pStmt;
 	bool m_Done; // no more rows available for Step
 	// returns false, if the query succeeded
-	bool Execute(const char *pQuery, char *pError, int ErrorSize);
+	virtual bool Execute(const char *pQuery, char *pError, int ErrorSize) override;
 
 	// returns true if an error was formatted
 	bool FormatError(int Result, char *pError, int ErrorSize);
@@ -169,6 +169,8 @@ bool CSqliteConnection::Connect(char *pError, int ErrorSize)
 			return true;
 		FormatCreateSaves(aBuf, sizeof(aBuf), /* Backup */ true);
 		if(Execute(aBuf, pError, ErrorSize))
+			return true;
+		if(CreateTablesMMO(pError, ErrorSize))
 			return true;
 		m_Setup = false;
 	}
