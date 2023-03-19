@@ -4,9 +4,6 @@
 #include "laser.h"
 #include "projectile.h"
 
-#include <antibot/antibot_data.h>
-
-#include <engine/antibot.h>
 #include <engine/shared/config.h>
 
 #include <game/generated/protocol.h>
@@ -16,7 +13,6 @@
 #include <game/server/gamecontext.h>
 #include <game/server/gamecontroller.h>
 #include <game/server/player.h>
-#include <game/server/score.h>
 #include <game/server/teams.h>
 
 MACRO_ALLOC_POOL_ID_IMPL(CCharacter, MAX_CLIENTS)
@@ -71,7 +67,6 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_NumInputs = 0;
 	m_SpawnTick = Server()->Tick();
 	m_WeaponChangeTick = Server()->Tick();
-	Antibot()->OnSpawn(m_pPlayer->GetCID());
 
 	m_Core.Reset();
 	m_Core.Init(&GameServer()->m_World.m_Core, Collision());
@@ -374,15 +369,6 @@ void CCharacter::HandleWeaponSwitch()
 
 void CCharacter::FireWeapon()
 {
-	if(m_ReloadTimer != 0)
-	{
-		if(m_LatestInput.m_Fire & 1)
-		{
-			Antibot()->OnHammerFireReloading(m_pPlayer->GetCID());
-		}
-		return;
-	}
-
 	DoWeaponSwitch();
 	vec2 Direction = normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY));
 
@@ -436,8 +422,6 @@ void CCharacter::FireWeapon()
 		m_NumObjectsHit = 0;
 		GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE, TeamMask());
 
-		Antibot()->OnHammerFire(m_pPlayer->GetCID());
-
 		if(m_Core.m_HammerHitDisabled)
 			break;
 
@@ -481,8 +465,6 @@ void CCharacter::FireWeapon()
 
 			if(m_FreezeHammer)
 				pTarget->Freeze();
-
-			Antibot()->OnHammerHit(m_pPlayer->GetCID(), pTarget->GetPlayer()->GetCID());
 
 			Hits++;
 		}
@@ -678,8 +660,6 @@ void CCharacter::OnDirectInput(CNetObj_PlayerInput *pNewInput)
 	if(m_LatestInput.m_TargetX == 0 && m_LatestInput.m_TargetY == 0)
 		m_LatestInput.m_TargetY = -1;
 
-	Antibot()->OnDirectInput(m_pPlayer->GetCID());
-
 	if(m_NumInputs > 1 && m_pPlayer->GetTeam() != TEAM_SPECTATORS)
 	{
 		HandleWeaponSwitch();
@@ -732,8 +712,6 @@ void CCharacter::PreTick()
 
 	DDRaceTick();
 
-	Antibot()->OnCharacterTick(m_pPlayer->GetCID());
-
 	m_Core.m_Input = m_Input;
 	m_Core.Tick(true, !g_Config.m_SvNoWeakHook);
 }
@@ -752,23 +730,10 @@ void CCharacter::Tick()
 		PreTick();
 	}
 
-	if(!m_PrevInput.m_Hook && m_Input.m_Hook && !(m_Core.m_TriggeredEvents & COREEVENT_HOOK_ATTACH_PLAYER))
-	{
-		Antibot()->OnHookAttach(m_pPlayer->GetCID(), false);
-	}
-
 	// handle Weapons
 	HandleWeapons();
 
 	DDRacePostCoreTick();
-
-	if(m_Core.m_TriggeredEvents & COREEVENT_HOOK_ATTACH_PLAYER)
-	{
-		if(m_Core.m_HookedPlayer != -1 && GameServer()->m_apPlayers[m_Core.m_HookedPlayer]->GetTeam() != TEAM_SPECTATORS)
-		{
-			Antibot()->OnHookAttach(m_pPlayer->GetCID(), true);
-		}
-	}
 
 	// Previnput
 	m_PrevInput = m_Input;
@@ -1244,48 +1209,6 @@ void CCharacter::SetTeleports(std::map<int, std::vector<vec2>> *pTeleOuts, std::
 	m_Core.m_pTeleOuts = pTeleOuts;
 }
 
-void CCharacter::FillAntibot(CAntibotCharacterData *pData)
-{
-	pData->m_Pos = m_Pos;
-	pData->m_Vel = m_Core.m_Vel;
-	pData->m_Angle = m_Core.m_Angle;
-	pData->m_HookedPlayer = m_Core.m_HookedPlayer;
-	pData->m_SpawnTick = m_SpawnTick;
-	pData->m_WeaponChangeTick = m_WeaponChangeTick;
-	pData->m_aLatestInputs[0].m_TargetX = m_LatestInput.m_TargetX;
-	pData->m_aLatestInputs[0].m_TargetY = m_LatestInput.m_TargetY;
-	pData->m_aLatestInputs[1].m_TargetX = m_LatestPrevInput.m_TargetX;
-	pData->m_aLatestInputs[1].m_TargetY = m_LatestPrevInput.m_TargetY;
-	pData->m_aLatestInputs[2].m_TargetX = m_LatestPrevPrevInput.m_TargetX;
-	pData->m_aLatestInputs[2].m_TargetY = m_LatestPrevPrevInput.m_TargetY;
-}
-
-void CCharacter::HandleBroadcast()
-{
-	CPlayerData *pData = GameServer()->Score()->PlayerData(m_pPlayer->GetCID());
-
-	if(m_DDRaceState == DDRACE_STARTED && m_pPlayer->GetClientVersion() == VERSION_VANILLA &&
-		m_LastTimeCpBroadcasted != m_LastTimeCp && m_LastTimeCp > -1 &&
-		m_TimeCpBroadcastEndTick > Server()->Tick() && pData->m_BestTime && pData->m_aBestTimeCp[m_LastTimeCp] != 0)
-	{
-		char aBroadcast[128];
-		float Diff = m_aCurrentTimeCp[m_LastTimeCp] - pData->m_aBestTimeCp[m_LastTimeCp];
-		str_format(aBroadcast, sizeof(aBroadcast), "Checkpoint | Diff : %+5.2f", Diff);
-		GameServer()->SendBroadcast(aBroadcast, m_pPlayer->GetCID());
-		m_LastTimeCpBroadcasted = m_LastTimeCp;
-		m_LastBroadcast = Server()->Tick();
-	}
-	else if((m_pPlayer->m_TimerType == CPlayer::TIMERTYPE_BROADCAST || m_pPlayer->m_TimerType == CPlayer::TIMERTYPE_GAMETIMER_AND_BROADCAST) && m_DDRaceState == DDRACE_STARTED && m_LastBroadcast + Server()->TickSpeed() * g_Config.m_SvTimeInBroadcastInterval <= Server()->Tick())
-	{
-		char aBuf[32];
-		int Time = (int64_t)100 * ((float)(Server()->Tick() - m_StartTime) / ((float)Server()->TickSpeed()));
-		str_time(Time, TIME_HOURS, aBuf, sizeof(aBuf));
-		GameServer()->SendBroadcast(aBuf, m_pPlayer->GetCID(), false);
-		m_LastTimeCpBroadcasted = m_LastTimeCp;
-		m_LastBroadcast = Server()->Tick();
-	}
-}
-
 void CCharacter::HandleSkippableTiles(int Index)
 {
 	// handle death-tiles and leaving gamelayer
@@ -1379,29 +1302,6 @@ bool CCharacter::IsSwitchActiveCb(int Number, void *pUser)
 	return !aSwitchers.empty() && pThis->Team() != TEAM_SUPER && aSwitchers[Number].m_aStatus[pThis->Team()];
 }
 
-void CCharacter::SetTimeCheckpoint(int TimeCheckpoint)
-{
-	if(TimeCheckpoint > -1 && m_DDRaceState == DDRACE_STARTED && m_aCurrentTimeCp[TimeCheckpoint] == 0.0f && m_Time != 0.0f)
-	{
-		m_LastTimeCp = TimeCheckpoint;
-		m_aCurrentTimeCp[m_LastTimeCp] = m_Time;
-		m_TimeCpBroadcastEndTick = Server()->Tick() + Server()->TickSpeed() * 2;
-		if(m_pPlayer->GetClientVersion() >= VERSION_DDRACE)
-		{
-			CPlayerData *pData = GameServer()->Score()->PlayerData(m_pPlayer->GetCID());
-			if(pData->m_BestTime && pData->m_aBestTimeCp[m_LastTimeCp] != 0.0f)
-			{
-				CNetMsg_Sv_DDRaceTime Msg;
-				Msg.m_Time = (int)(m_Time * 100.0f);
-				Msg.m_Finish = 0;
-				float Diff = (m_aCurrentTimeCp[m_LastTimeCp] - pData->m_aBestTimeCp[m_LastTimeCp]) * 100;
-				Msg.m_Check = (int)Diff;
-				Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, m_pPlayer->GetCID());
-			}
-		}
-	}
-}
-
 void CCharacter::HandleTiles(int Index)
 {
 	int MapIndex = Index;
@@ -1416,8 +1316,6 @@ void CCharacter::HandleTiles(int Index)
 		m_LastBonus = false;
 		return;
 	}
-	SetTimeCheckpoint(Collision()->IsTimeCheckpoint(MapIndex));
-	SetTimeCheckpoint(Collision()->IsFTimeCheckpoint(MapIndex));
 	int TeleCheckpoint = Collision()->IsTeleCheckpoint(MapIndex);
 	if(TeleCheckpoint)
 		m_TeleCheckpoint = TeleCheckpoint;
@@ -1978,11 +1876,6 @@ void CCharacter::SendZoneMsgs()
 	}
 }
 
-IAntibot *CCharacter::Antibot()
-{
-	return GameServer()->Antibot();
-}
-
 void CCharacter::SetTeams(CGameTeams *pTeams)
 {
 	m_pTeams = pTeams;
@@ -2127,8 +2020,6 @@ void CCharacter::DDRacePostCoreTick()
 		m_TeleGunTeleport = false;
 		m_IsBlueTeleGunTeleport = false;
 	}
-
-	HandleBroadcast();
 }
 
 bool CCharacter::Freeze(int Seconds)

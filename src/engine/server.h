@@ -15,8 +15,6 @@
 #include <game/generated/protocol7.h>
 #include <game/generated/protocolglue.h>
 
-struct CAntibotRoundData;
-
 // When recording a demo on the server, the ClientID -1 is used
 enum
 {
@@ -261,8 +259,6 @@ public:
 	virtual void SetErrorShutdown(const char *pReason) = 0;
 	virtual void ExpireServerInfo() = 0;
 
-	virtual void FillAntibot(CAntibotRoundData *pData) = 0;
-
 	virtual void SendMsgRaw(int ClientID, const void *pData, int Size, int Flags) = 0;
 
 	virtual const char *GetMapName() const = 0;
@@ -329,8 +325,6 @@ public:
 
 	virtual void OnClientEngineJoin(int ClientID, bool Sixup) = 0;
 	virtual void OnClientEngineDrop(int ClientID, const char *pReason) = 0;
-
-	virtual void FillAntibot(CAntibotRoundData *pData) = 0;
 
 	/**
 	 * Used to report custom player info to master servers.

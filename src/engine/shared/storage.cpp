@@ -3,7 +3,6 @@
 #include "linereader.h"
 #include <base/math.h>
 #include <base/system.h>
-#include <engine/client/updater.h>
 #include <engine/storage.h>
 
 #ifdef CONF_PLATFORM_HAIKU
@@ -286,25 +285,25 @@ public:
 
 			if(Pos < IO_MAX_PATH_LENGTH)
 			{
-				char aBuf[IO_MAX_PATH_LENGTH];
-				str_copy(m_aBinarydir, pArgv0, Pos + 1);
-				str_format(aBuf, sizeof(aBuf), "%s/" PLAT_SERVER_EXEC, m_aBinarydir);
-				IOHANDLE File = io_open(aBuf, IOFLAG_READ);
-				if(File)
-				{
-					io_close(File);
-					return;
-				}
-#if defined(CONF_PLATFORM_MACOS)
-				str_append(m_aBinarydir, "/../../../DDNet-Server.app/Contents/MacOS", sizeof(m_aBinarydir));
-				str_format(aBuf, sizeof(aBuf), "%s/" PLAT_SERVER_EXEC, m_aBinarydir);
-				IOHANDLE FileBis = io_open(aBuf, IOFLAG_READ);
-				if(FileBis)
-				{
-					io_close(FileBis);
-					return;
-				}
-#endif
+//				char aBuf[IO_MAX_PATH_LENGTH];
+//				str_copy(m_aBinarydir, pArgv0, Pos + 1);
+//				str_format(aBuf, sizeof(aBuf), "%s/" PLAT_SERVER_EXEC, m_aBinarydir);
+//				IOHANDLE File = io_open(aBuf, IOFLAG_READ);
+//				if(File)
+//				{
+//					io_close(File);
+//					return;
+//				}
+//#if defined(CONF_PLATFORM_MACOS)
+//				str_append(m_aBinarydir, "/../../../DDNet-Server.app/Contents/MacOS", sizeof(m_aBinarydir));
+//				str_format(aBuf, sizeof(aBuf), "%s/" PLAT_SERVER_EXEC, m_aBinarydir);
+//				IOHANDLE FileBis = io_open(aBuf, IOFLAG_READ);
+//				if(FileBis)
+//				{
+//					io_close(FileBis);
+//					return;
+//				}
+//#endif
 			}
 		}
 
@@ -717,20 +716,6 @@ public:
 
 	const char *GetBinaryPathAbsolute(const char *pFilename, char *pBuffer, unsigned BufferSize) override
 	{
-		char aBinaryPath[IO_MAX_PATH_LENGTH];
-		GetBinaryPath(PLAT_CLIENT_EXEC, aBinaryPath, sizeof(aBinaryPath));
-		if(fs_is_relative_path(aBinaryPath))
-		{
-			if(fs_getcwd(pBuffer, BufferSize))
-			{
-				str_append(pBuffer, "/", BufferSize);
-				str_append(pBuffer, aBinaryPath, BufferSize);
-			}
-			else
-				pBuffer[0] = '\0';
-		}
-		else
-			str_copy(pBuffer, aBinaryPath, BufferSize);
 		return pBuffer;
 	}
 

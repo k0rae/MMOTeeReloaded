@@ -8,7 +8,6 @@
 #include <game/server/entities/character.h>
 #include <game/server/gamecontext.h>
 #include <game/server/player.h>
-#include <game/server/score.h>
 #include <game/version.h>
 
 #define GAME_TYPE_NAME "DDraceNetwork"
@@ -126,22 +125,14 @@ void CGameControllerDDRace::OnPlayerConnect(CPlayer *pPlayer)
 	IGameController::OnPlayerConnect(pPlayer);
 	int ClientID = pPlayer->GetCID();
 
-	// init the player
-	Score()->PlayerData(ClientID)->Reset();
-	pPlayer->m_Score = Score()->PlayerData(ClientID)->m_BestTime ? Score()->PlayerData(ClientID)->m_BestTime : -9999;
-
-	// Can't set score here as LoadScore() is threaded, run it in
-	// LoadScoreThreaded() instead
-	Score()->LoadPlayerData(ClientID);
-
 	if(!Server()->ClientPrevIngame(ClientID))
 	{
 		char aBuf[512];
-		str_format(aBuf, sizeof(aBuf), "'%s' entered and joined the %s", Server()->ClientName(ClientID), GetTeamName(pPlayer->GetTeam()));
+		str_format(aBuf, sizeof(aBuf), "'%s' joined to the server", Server()->ClientName(ClientID));
 		GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf, -1, CGameContext::CHAT_SIX);
 
-		GameServer()->SendChatTarget(ClientID, "DDraceNetwork Mod. Version: " GAME_VERSION);
-		GameServer()->SendChatTarget(ClientID, "please visit DDNet.org or say /info and make sure to read our /rules");
+		GameServer()->SendChatTarget(ClientID, "MMOTeeReloaded mod. Check /info and /creators");
+		GameServer()->SendChatTarget(ClientID, "/register and /login");
 	}
 }
 
@@ -170,23 +161,6 @@ void CGameControllerDDRace::Tick()
 	IGameController::Tick();
 	m_Teams.ProcessSaveTeam();
 	m_Teams.Tick();
-
-	if(m_pLoadBestTimeResult != nullptr && m_pLoadBestTimeResult->m_Completed)
-	{
-		if(m_pLoadBestTimeResult->m_Success)
-		{
-			m_CurrentRecord = m_pLoadBestTimeResult->m_CurrentRecord;
-
-			for(int i = 0; i < MAX_CLIENTS; i++)
-			{
-				if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetClientVersion() >= VERSION_DDRACE)
-				{
-					GameServer()->SendRecord(i);
-				}
-			}
-		}
-		m_pLoadBestTimeResult = nullptr;
-	}
 }
 
 void CGameControllerDDRace::DoTeamChange(class CPlayer *pPlayer, int Team, bool DoChatMsg)

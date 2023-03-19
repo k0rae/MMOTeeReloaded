@@ -1,8 +1,6 @@
 /* (c) Shereef Marzouk. See "licence DDRace.txt" and the readme.txt in the root of the distribution for more information. */
 #include "gamecontext.h"
 
-#include <engine/antibot.h>
-
 #include <engine/shared/config.h>
 #include <game/server/entities/character.h>
 #include <game/server/gamemodes/DDRace.h>
@@ -813,12 +811,6 @@ void CGameContext::ConDrySave(IConsole::IResult *pResult, void *pUserData)
 	int Len = str_length(SavedTeam.GetString());
 	io_write(File, SavedTeam.GetString(), Len);
 	io_close(File);
-}
-
-void CGameContext::ConDumpAntibot(IConsole::IResult *pResult, void *pUserData)
-{
-	CGameContext *pSelf = (CGameContext *)pUserData;
-	pSelf->Antibot()->Dump();
 }
 
 void CGameContext::ConDumpLog(IConsole::IResult *pResult, void *pUserData)

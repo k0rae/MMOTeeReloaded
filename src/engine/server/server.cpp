@@ -30,7 +30,6 @@
 #include <engine/shared/protocol.h>
 #include <engine/shared/protocol7.h>
 #include <engine/shared/protocol_ex.h>
-#include <engine/shared/rust_version.h>
 #include <engine/shared/snapshot.h>
 
 #include <game/version.h>
@@ -822,10 +821,6 @@ int CServer::SendMsg(CMsgPacker *pMsg, int Flags, int ClientID)
 					Packet.m_pData = pPack->Data();
 					Packet.m_DataSize = pPack->Size();
 					Packet.m_ClientID = i;
-					if(Antibot()->OnEngineServerMessage(i, Packet.m_pData, Packet.m_DataSize, Flags))
-					{
-						continue;
-					}
 					m_NetServer.Send(&Packet);
 				}
 			}
@@ -840,11 +835,6 @@ int CServer::SendMsg(CMsgPacker *pMsg, int Flags, int ClientID)
 		Packet.m_ClientID = ClientID;
 		Packet.m_pData = Pack.Data();
 		Packet.m_DataSize = Pack.Size();
-
-		if(Antibot()->OnEngineServerMessage(ClientID, Packet.m_pData, Packet.m_DataSize, Flags))
-		{
-			return 0;
-		}
 
 		// write message to demo recorders
 		if(!(Flags & MSGFLAG_NORECORD))
@@ -1082,7 +1072,6 @@ int CServer::NewClientCallback(int ClientID, void *pUser, bool Sixup)
 	pThis->m_aClients[ClientID].Reset();
 
 	pThis->GameServer()->OnClientEngineJoin(ClientID, Sixup);
-	pThis->Antibot()->OnEngineClientJoin(ClientID, Sixup);
 
 	pThis->m_aClients[ClientID].m_Sixup = Sixup;
 
@@ -1166,7 +1155,6 @@ int CServer::DelClientCallback(int ClientID, const char *pReason, void *pUser)
 	pThis->m_aClients[ClientID].m_Sixup = false;
 
 	pThis->GameServer()->OnClientEngineDrop(ClientID, pReason);
-	pThis->Antibot()->OnEngineClientDrop(ClientID, pReason);
 #if defined(CONF_FAMILY_UNIX)
 	pThis->SendConnLoggingCommand(CLOSE_SESSION, pThis->m_NetServer.ClientAddr(ClientID));
 #endif
@@ -2177,15 +2165,6 @@ void CServer::GetServerInfoSixup(CPacker *pPacker, int Token, bool SendClients)
 	pPacker->AddRaw(FirstChunk.m_vData.data(), FirstChunk.m_vData.size());
 }
 
-void CServer::FillAntibot(CAntibotRoundData *pData)
-{
-	for(int i = 0; i < MAX_CLIENTS; i++)
-	{
-		CAntibotPlayerData *pPlayer = &pData->m_aPlayers[i];
-		net_addr_str(m_NetServer.ClientAddr(i), pPlayer->m_aAddress, sizeof(pPlayer->m_aAddress), true);
-	}
-}
-
 void CServer::ExpireServerInfo()
 {
 	m_ServerInfoNeedsUpdate = true;
@@ -2385,10 +2364,6 @@ void CServer::PumpNetwork(bool PacketWaiting)
 				{
 					GameFlags |= MSGFLAG_VITAL;
 				}
-				if(Antibot()->OnEngineClientMessage(Packet.m_ClientID, Packet.m_pData, Packet.m_DataSize, GameFlags))
-				{
-					continue;
-				}
 
 				ProcessClientPacket(&Packet);
 			}
@@ -2399,15 +2374,6 @@ void CServer::PumpNetwork(bool PacketWaiting)
 		int Flags;
 		mem_zero(&Packet, sizeof(Packet));
 		Packet.m_pData = aBuffer;
-		while(Antibot()->OnEngineSimulateClientMessage(&Packet.m_ClientID, aBuffer, sizeof(aBuffer), &Packet.m_DataSize, &Flags))
-		{
-			Packet.m_Flags = 0;
-			if(Flags & MSGFLAG_VITAL)
-			{
-				Packet.m_Flags |= NET_CHUNKFLAG_VITAL;
-			}
-			ProcessClientPacket(&Packet);
-		}
 	}
 
 	m_ServerBan.Update();
@@ -2605,7 +2571,6 @@ int CServer::Run()
 	str_format(aBuf, sizeof(aBuf), "server name is '%s'", Config()->m_SvName);
 	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
 
-	Antibot()->Init();
 	GameServer()->OnInit();
 	if(ErrorShutdown())
 	{
@@ -2805,8 +2770,6 @@ int CServer::Run()
 
 			if(m_ServerInfoNeedsUpdate)
 				UpdateServerInfo();
-
-			Antibot()->OnEngineTick();
 
 			if(!NonActive)
 				PumpNetwork(PacketWaiting);
@@ -3649,7 +3612,6 @@ void CServer::RegisterCommands()
 	m_pGameServer = Kernel()->RequestInterface<IGameServer>();
 	m_pMap = Kernel()->RequestInterface<IEngineMap>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
-	m_pAntibot = Kernel()->RequestInterface<IEngineAntibot>();
 
 	HttpInit(m_pStorage);
 
@@ -3678,8 +3640,6 @@ void CServer::RegisterCommands()
 	Console()->Register("name_ban", "s[name] ?i[distance] ?i[is_substring] ?r[reason]", CFGFLAG_SERVER, ConNameBan, this, "Ban a certain nickname");
 	Console()->Register("name_unban", "s[name]", CFGFLAG_SERVER, ConNameUnban, this, "Unban a certain nickname");
 	Console()->Register("name_bans", "", CFGFLAG_SERVER, ConNameBans, this, "List all name bans");
-
-	RustVersionRegister(*Console());
 
 	Console()->Chain("sv_name", ConchainSpecialInfoupdate, this);
 	Console()->Chain("loglevel", ConchainLoglevel, this);
