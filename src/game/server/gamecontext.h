@@ -19,6 +19,9 @@
 #include <memory>
 #include <string>
 
+// Components
+#include "mmo/components/account_manager.h"
+
 /*
 	Tick
 		Game Context (CGameContext::tick)
@@ -56,7 +59,6 @@ class IAntibot;
 class IGameController;
 class IEngine;
 class IStorage;
-struct CScoreRandomMapResult;
 
 struct CSnapContext
 {
@@ -323,7 +325,7 @@ public:
 
 private:
 	// starting 1 to make 0 the special value "no client id"
-	uint32_t NextUniqueClientID = 1;
+	uint32_t m_NextUniqueClientID = 1;
 	bool m_VoteWillPass;
 	CScore *m_pScore;
 
@@ -482,6 +484,11 @@ public:
 	virtual float PlayerJetpack();
 
 	void ResetTuning();
+
+	// MMOTeeReloaded stuff
+	std::vector<CServerComponent*> m_vpComponents;
+
+	CAccountManager m_AccountManager;
 };
 
 #endif

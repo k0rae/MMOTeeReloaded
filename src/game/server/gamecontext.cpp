@@ -888,6 +888,9 @@ void CGameContext::OnTick()
 	//if(world.paused) // make sure that the game object always updates
 	m_pController->Tick();
 
+	for(auto &pComponent : m_vpComponents)
+		pComponent->OnTick();
+
 	for(int i = 0; i < MAX_CLIENTS; i++)
 	{
 		if(m_apPlayers[i])
@@ -1529,14 +1532,11 @@ void CGameContext::OnClientConnected(int ClientID, void *pData)
 		}
 	}
 
-	// Check which team the player should be on
-	const int StartTeam = (Spec || g_Config.m_SvTournamentMode) ? TEAM_SPECTATORS : m_pController->GetAutoTeam(ClientID);
-
 	if(m_apPlayers[ClientID])
 		delete m_apPlayers[ClientID];
-	m_apPlayers[ClientID] = new(ClientID) CPlayer(this, NextUniqueClientID, ClientID, StartTeam);
+	m_apPlayers[ClientID] = new(ClientID) CPlayer(this, m_NextUniqueClientID, ClientID, TEAM_SPECTATORS);
 	m_apPlayers[ClientID]->SetAfk(Afk);
-	NextUniqueClientID += 1;
+	m_NextUniqueClientID += 1;
 
 #ifdef CONF_DEBUG
 	if(g_Config.m_DbgDummies)
@@ -2238,52 +2238,30 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		{
 			CNetMsg_Cl_SetTeam *pMsg = (CNetMsg_Cl_SetTeam *)pRawMsg;
 
-			if(pPlayer->GetTeam() == pMsg->m_Team || (g_Config.m_SvSpamprotection && pPlayer->m_LastSetTeam && pPlayer->m_LastSetTeam + Server()->TickSpeed() * g_Config.m_SvTeamChangeDelay > Server()->Tick()))
+			if(pPlayer->GetTeam() == pMsg->m_Team || pMsg->m_Team == TEAM_SPECTATORS)
 				return;
-
-			//Kill Protection
-			CCharacter *pChr = pPlayer->GetCharacter();
-			if(pChr)
+			if(!pPlayer->m_LoggedIn)
 			{
-				int CurrTime = (Server()->Tick() - pChr->m_StartTime) / Server()->TickSpeed();
-				if(g_Config.m_SvKillProtection != 0 && CurrTime >= (60 * g_Config.m_SvKillProtection) && pChr->m_DDRaceState == DDRACE_STARTED)
-				{
-					SendChatTarget(ClientID, "Kill Protection enabled. If you really want to join the spectators, first type /kill");
-					return;
-				}
+				SendChatTarget(ClientID, "Login first!");
+				return;
 			}
 
 			if(pPlayer->m_TeamChangeTick > Server()->Tick())
 			{
 				pPlayer->m_LastSetTeam = Server()->Tick();
 				int TimeLeft = (pPlayer->m_TeamChangeTick - Server()->Tick()) / Server()->TickSpeed();
+
 				char aTime[32];
 				str_time((int64_t)TimeLeft * 100, TIME_HOURS, aTime, sizeof(aTime));
+
 				char aBuf[128];
 				str_format(aBuf, sizeof(aBuf), "Time to wait before changing team: %s", aTime);
 				SendBroadcast(aBuf, ClientID);
+
 				return;
 			}
 
-			// Switch team on given client and kill/respawn them
-			if(m_pController->CanJoinTeam(pMsg->m_Team, ClientID))
-			{
-				if(pPlayer->IsPaused())
-					SendChatTarget(ClientID, "Use /pause first then you can kill");
-				else
-				{
-					if(pPlayer->GetTeam() == TEAM_SPECTATORS || pMsg->m_Team == TEAM_SPECTATORS)
-						m_VoteUpdate = true;
-					m_pController->DoTeamChange(pPlayer, pMsg->m_Team);
-					pPlayer->m_TeamChangeTick = Server()->Tick();
-				}
-			}
-			else
-			{
-				char aBuf[128];
-				str_format(aBuf, sizeof(aBuf), "Only %d active players are allowed", Server()->MaxClients() - g_Config.m_SvSpectatorSlots);
-				SendBroadcast(aBuf, ClientID);
-			}
+			m_pController->DoTeamChange(pPlayer, pMsg->m_Team);
 		}
 		else if(MsgID == NETMSGTYPE_CL_ISDDNETLEGACY)
 		{
@@ -3409,6 +3387,16 @@ void CGameContext::OnInit()
 		}
 	}
 
+	m_vpComponents.insert(m_vpComponents.end(), {
+		&m_AccountManager
+	});
+
+	for(auto &pComponent : m_vpComponents)
+		pComponent->m_pGameServer = this;
+
+	for(auto &pComponent : m_vpComponents)
+		pComponent->OnConsoleInit();
+
 	// create all entities from the game layer
 	CreateAllEntities(true);
 
@@ -3748,6 +3736,9 @@ void CGameContext::OnSnap(int ClientID)
 
 	m_World.Snap(ClientID);
 	m_Events.Snap(ClientID);
+
+	for(auto &pComponent : m_vpComponents)
+		pComponent->OnSnap(ClientID);
 }
 void CGameContext::OnPreSnap() {}
 void CGameContext::OnPostSnap()

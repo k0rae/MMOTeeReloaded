@@ -12,6 +12,8 @@
 
 #include <memory>
 
+#include <game/server/mmo/components/account_manager.h>
+
 class CCharacter;
 class CGameContext;
 class IServer;
@@ -215,6 +217,10 @@ public:
 	bool m_VotedForPractice;
 	int m_SwapTargetsClientID; //Client ID of the swap target for the given player
 	bool m_BirthdayAnnounced;
+
+	// MMOTeeReloaded stuff
+	SAccountData m_AccData;
+	bool m_LoggedIn;
 };
 
 #endif
