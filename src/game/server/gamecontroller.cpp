@@ -400,7 +400,7 @@ bool IGameController::OnQuadEntity(const char *pLayerName, vec2 Pivot, vec2 *pPo
 
 	// Handle mobs
 	if (!str_comp(pLayerName, "BotSlime"))
-		GameServer()->CreateDummy(Pos, DUMMY_TYPE_STAND);
+		GameServer()->CreateDummy(Pos, DUMMY_TYPE_SLIME);
 
 	return false;
 }

@@ -31,6 +31,7 @@ class CDummyBase : public CEntity
 	bool m_NoDamage;
 
 	int m_DummyType;
+	CDummyController *m_pDummyController;
 
 	int m_DefaultEmote;
 	int m_EmoteType;
@@ -38,6 +39,7 @@ class CDummyBase : public CEntity
 
 public:
 	CDummyBase(CGameWorld *pWorld, vec2 Pos, int DummyType);
+	~CDummyBase();
 
 	void Spawn();
 	void Die();

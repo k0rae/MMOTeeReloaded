@@ -4332,9 +4332,26 @@ void CGameContext::ClearBotSnapIDs()
 void CGameContext::CreateDummy(vec2 Pos, int DummyType)
 {
 	CDummyBase *pNewDummy = new CDummyBase(&m_World, Pos, DummyType);
-	pNewDummy->SetName("Test");
-	pNewDummy->SetClan("TestClan");
-	pNewDummy->SetTeeInfo(CTeeInfo("greyfox", 1, 0, 0)); // NIGGA GREYFOX
+
+	// 0 - name, 1 - clan, 2 - skin
+	static const char *s_aapDummyIndentsStrings[][3] = {
+		{"ULTRA STANDER", "", "greyfox"},
+		{"Slime", "MOB", "ghost"}
+	};
+
+	// 0 - use custom color, 1 - color body, 2 - color feet
+	static int s_aapDummyIndentsInts[][3] = {
+		{1, 0, 0},
+		{1, 5504798, 5504798}
+	};
+
+	pNewDummy->SetName(s_aapDummyIndentsStrings[DummyType][0]);
+	pNewDummy->SetClan(s_aapDummyIndentsStrings[DummyType][1]);
+	pNewDummy->SetTeeInfo(CTeeInfo(
+		s_aapDummyIndentsStrings[DummyType][2],
+		s_aapDummyIndentsInts[DummyType][0],
+		s_aapDummyIndentsInts[DummyType][1],
+		s_aapDummyIndentsInts[DummyType][2]));
 }
 
 void CGameContext::CreateEntitiesMMO()

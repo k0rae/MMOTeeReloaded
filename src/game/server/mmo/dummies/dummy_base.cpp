@@ -2,6 +2,8 @@
 
 #include <game/server/gamecontext.h>
 
+#include "mobs/slime.h"
+
 CDummyBase::CDummyBase(CGameWorld *pWorld, vec2 Pos, int DummyType) :
 	CEntity(pWorld, CGameWorld::ENTTYPE_DUMMY, Pos)
 {
@@ -17,7 +19,34 @@ CDummyBase::CDummyBase(CGameWorld *pWorld, vec2 Pos, int DummyType) :
 	str_copy(m_aName, "[NULL BOT]");
 	str_copy(m_aClan, "");
 
+	// Create dummy controller
+	switch(m_DummyType)
+	{
+	case DUMMY_TYPE_STAND:
+		m_pDummyController = 0x0;
+		break;
+	case DUMMY_TYPE_SLIME:
+		m_pDummyController = new CSlimeController();
+		break;
+	default:
+		m_pDummyController = 0x0;
+		dbg_msg("dummy", "invalid dummy type: %d", m_DummyType);
+	}
+
+	if (m_pDummyController)
+		m_pDummyController->m_pDummyBase = this;
+
 	Spawn();
+}
+
+CDummyBase::~CDummyBase()
+{
+	switch(m_DummyType)
+	{
+	case DUMMY_TYPE_SLIME:
+		delete (CSlimeController *)m_pDummyController;
+		break;
+	}
 }
 
 void CDummyBase::Spawn()
@@ -108,6 +137,9 @@ void CDummyBase::Tick()
 	if (!m_Alive)
 		return;
 
+	if (m_pDummyController)
+		m_pDummyController->DummyTick();
+
 	m_Core.m_Input = m_Input;
 	m_Core.Tick(true);
 	m_Core.Move();
@@ -165,8 +197,8 @@ void CDummyBase::Snap(int SnappingClient)
 	pCharacter->m_Emote = (m_EmoteStop > Server()->Tick()) ? m_EmoteType : m_DefaultEmote;
 	pCharacter->m_HookedPlayer = -1;
 	pCharacter->m_AttackTick = 0;
-	pCharacter->m_Direction = 0;
-	pCharacter->m_Weapon = 0;
+	pCharacter->m_Direction = m_Input.m_Direction;
+	pCharacter->m_Weapon = m_Input.m_WantedWeapon;
 	pCharacter->m_AmmoCount = 0;
 	pCharacter->m_Health = 0;
 	pCharacter->m_Armor = 0;
