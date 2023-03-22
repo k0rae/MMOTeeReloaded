@@ -126,7 +126,6 @@ class CGameContext : public IGameServer
 	static void ConAddMapVotes(IConsole::IResult *pResult, void *pUserData);
 	static void ConVote(IConsole::IResult *pResult, void *pUserData);
 	static void ConVoteNo(IConsole::IResult *pResult, void *pUserData);
-	static void ConDrySave(IConsole::IResult *pResult, void *pUserData);
 	static void ConchainSpecialMotdupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConDumpLog(IConsole::IResult *pResult, void *pUserData);
 
@@ -487,12 +486,13 @@ public:
 
 	int GetNextBotSnapID(int ClientID);
 
-	void CreateDummy(vec2 Pos);
+	void CreateDummy(vec2 Pos, int DummyType);
 
 private:
 	int m_aBotSnapIDs[MAX_CLIENTS];
-
 	void ClearBotSnapIDs();
+
+	void CreateEntitiesMMO();
 
 	static void ConCreateDummy(IConsole::IResult *pResult, void *pUserData);
 };

@@ -18,6 +18,8 @@
 #include "entities/pickup.h"
 #include "entities/projectile.h"
 
+#include "mmo/dummies/dummy_base.h"
+
 IGameController::IGameController(class CGameContext *pGameServer)
 {
 	m_pGameServer = pGameServer;
@@ -385,6 +387,20 @@ bool IGameController::OnEntity(int Index, int x, int y, int Layer, int Flags, bo
 		pPickup->m_Pos = Pos;
 		return true;
 	}
+
+	return false;
+}
+
+bool IGameController::OnQuadEntity(const char *pLayerName, vec2 Pivot, vec2 *pPoints)
+{
+	vec2 Pos;
+	for (int i = 0; i < 4; i++)
+		Pos += pPoints[i];
+	Pos /= 4;
+
+	// Handle mobs
+	if (!str_comp(pLayerName, "BotSlime"))
+		GameServer()->CreateDummy(Pos, DUMMY_TYPE_STAND);
 
 	return false;
 }

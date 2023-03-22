@@ -5,7 +5,6 @@
 #include <game/server/entities/character.h>
 #include <game/server/gamemodes/DDRace.h>
 #include <game/server/player.h>
-#include <game/server/save.h>
 #include <game/server/teams.h>
 
 bool CheckClientID(int ClientID);
@@ -786,33 +785,6 @@ void CGameContext::ConVoteNo(IConsole::IResult *pResult, void *pUserData)
 	pSelf->ForceVote(pResult->m_ClientID, false);
 }
 
-void CGameContext::ConDrySave(IConsole::IResult *pResult, void *pUserData)
-{
-	CGameContext *pSelf = (CGameContext *)pUserData;
-
-	CPlayer *pPlayer = pSelf->m_apPlayers[pResult->m_ClientID];
-
-	if(!pPlayer || pSelf->Server()->GetAuthedState(pResult->m_ClientID) != AUTHED_ADMIN)
-		return;
-
-	CSaveTeam SavedTeam;
-	int Result = SavedTeam.Save(pSelf, pPlayer->GetTeam(), true);
-	if(CSaveTeam::HandleSaveError(Result, pResult->m_ClientID, pSelf))
-		return;
-
-	char aTimestamp[32];
-	str_timestamp(aTimestamp, sizeof(aTimestamp));
-	char aBuf[64];
-	str_format(aBuf, sizeof(aBuf), "%s_%s_%s.save", pSelf->Server()->GetMapName(), aTimestamp, pSelf->Server()->GetAuthName(pResult->m_ClientID));
-	IOHANDLE File = pSelf->Storage()->OpenFile(aBuf, IOFLAG_WRITE, IStorage::TYPE_ALL);
-	if(!File)
-		return;
-
-	int Len = str_length(SavedTeam.GetString());
-	io_write(File, SavedTeam.GetString(), Len);
-	io_close(File);
-}
-
 void CGameContext::ConDumpLog(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
@@ -865,5 +837,5 @@ void CGameContext::LogEvent(const char *Description, int ClientID)
 void CGameContext::ConCreateDummy(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
-	pSelf->CreateDummy(pSelf->GetPlayerChar(pResult->m_ClientID)->m_Pos);
+	pSelf->CreateDummy(pSelf->GetPlayerChar(pResult->m_ClientID)->m_Pos, 0);
 }

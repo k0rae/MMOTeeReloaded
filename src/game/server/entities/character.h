@@ -4,7 +4,6 @@
 #define GAME_SERVER_ENTITIES_CHARACTER_H
 
 #include <game/server/entity.h>
-#include <game/server/save.h>
 
 class CGameTeams;
 class CGameWorld;
@@ -157,7 +156,6 @@ private:
 	void SendZoneMsgs();
 
 	bool m_SetSavePos;
-	CSaveTee m_RescueTee;
 
 public:
 	CGameTeams *Teams() { return m_pTeams; }
@@ -242,8 +240,6 @@ public:
 	bool GrenadeHitDisabled() { return m_Core.m_GrenadeHitDisabled; }
 
 	bool IsSuper() { return m_Core.m_Super; }
-
-	CSaveTee &GetRescueTeeRef() { return m_RescueTee; }
 };
 
 enum

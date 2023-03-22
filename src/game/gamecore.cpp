@@ -252,6 +252,7 @@ void CCharacterCore::Tick(bool UseInput, bool DoDeferredTick)
 	if(m_HookState == HOOK_IDLE)
 	{
 		SetHookedPlayer(-1);
+		m_pHookedDummy = 0x0;
 		m_HookPos = m_Pos;
 	}
 	else if(m_HookState >= HOOK_RETRACT_START && m_HookState < HOOK_RETRACT_END)
@@ -294,7 +295,7 @@ void CCharacterCore::Tick(bool UseInput, bool DoDeferredTick)
 		}
 
 		// Check against other players first
-		if(!this->m_HookHitDisabled && m_pWorld && m_Tuning.m_PlayerHooking)
+		if(!m_HookHitDisabled && m_pWorld && m_Tuning.m_PlayerHooking)
 		{
 			float Distance = 0.0f;
 			for(int i = 0; i < MAX_CLIENTS; i++)
@@ -314,6 +315,27 @@ void CCharacterCore::Tick(bool UseInput, bool DoDeferredTick)
 							m_HookState = HOOK_GRABBED;
 							SetHookedPlayer(i);
 							Distance = distance(m_HookPos, pCharCore->m_Pos);
+						}
+					}
+				}
+			}
+
+			for (CCharacterCore *pCore : m_pWorld->m_vDummies)
+			{
+				if (this == pCore)
+					continue;
+
+				vec2 ClosestPoint;
+				if(closest_point_on_line(m_HookPos, NewPos, pCore->m_Pos, ClosestPoint))
+				{
+					if(distance(pCore->m_Pos, ClosestPoint) < PhysicalSize() + 2.0f)
+					{
+						if(m_HookedPlayer == -1 || distance(m_HookPos, pCore->m_Pos) < Distance)
+						{
+							m_TriggeredEvents |= COREEVENT_HOOK_ATTACH_PLAYER;
+							m_HookState = HOOK_GRABBED;
+							m_pHookedDummy = pCore;
+							Distance = distance(m_HookPos, pCore->m_Pos);
 						}
 					}
 				}
@@ -372,8 +394,18 @@ void CCharacterCore::Tick(bool UseInput, bool DoDeferredTick)
 			// release_hooked();
 		}
 
+		if(m_pHookedDummy)
+			m_HookPos = m_pHookedDummy->m_Pos;
+
+		if(m_pHookedDummy && !m_pHookedDummy->m_Alive)
+		{
+			m_pHookedDummy = 0x0;
+			m_HookState = HOOK_RETRACTED;
+			m_HookPos = m_Pos;
+		}
+
 		// don't do this hook rutine when we are hook to a player
-		if(m_HookedPlayer == -1 && distance(m_HookPos, m_Pos) > 46.0f)
+		if(m_HookedPlayer == -1 && !m_pHookedDummy && distance(m_HookPos, m_Pos) > 46.0f)
 		{
 			vec2 HookVel = normalize(m_HookPos - m_Pos) * m_Tuning.m_HookDragAccel;
 			// the hook as more power to drag you up then down.
@@ -397,9 +429,10 @@ void CCharacterCore::Tick(bool UseInput, bool DoDeferredTick)
 
 		// release hook (max default hook time is 1.25 s)
 		m_HookTick++;
-		if(m_HookedPlayer != -1 && (m_HookTick > SERVER_TICK_SPEED + SERVER_TICK_SPEED / 5 || (m_pWorld && !m_pWorld->m_apCharacters[m_HookedPlayer])))
+		if((m_pHookedDummy || m_HookedPlayer != -1) && (m_HookTick > SERVER_TICK_SPEED + SERVER_TICK_SPEED / 5 || (m_pWorld && !m_pWorld->m_apCharacters[m_HookedPlayer])))
 		{
 			SetHookedPlayer(-1);
+			m_pHookedDummy = 0x0;
 			m_HookState = HOOK_RETRACTED;
 			m_HookPos = m_Pos;
 		}
@@ -477,6 +510,8 @@ void CCharacterCore::TickDeferred()
 		{
 			if (pCore == this)
 				continue;
+			if (!pCore->m_Alive)
+				continue;
 
 			float Distance = distance(m_Pos, pCore->m_Pos);
 			if(Distance > 0)
@@ -493,10 +528,30 @@ void CCharacterCore::TickDeferred()
 					// make sure that we don't add excess force by checking the
 					// direction against the current velocity. if not zero.
 					if(length(m_Vel) > 0.0001f)
-						Velocity = 1 - (dot(normalize(m_Vel), Dir) + 1) / 2; // Wdouble-promotion don't fix this as this might change game physics
+						Velocity = 1 - (dot(normalize(m_Vel), Dir) + 1) / 2; // Double-promotion don't fix this as this might change game physics
 
 					m_Vel += Dir * a * (Velocity * 0.75f);
 					m_Vel *= 0.85f;
+				}
+
+				// handle hook influence
+				if(!m_HookHitDisabled && m_pHookedDummy == pCore && m_Tuning.m_PlayerHooking)
+				{
+					if(Distance > PhysicalSize() * 1.50f) // TODO: fix tweakable variable
+					{
+						float HookAccel = m_Tuning.m_HookDragAccel * (Distance / m_Tuning.m_HookLength);
+						float DragSpeed = m_Tuning.m_HookDragSpeed;
+
+						vec2 Temp;
+						// add force to the hooked player
+						Temp.x = SaturatedAdd(-DragSpeed, DragSpeed, pCore->m_Vel.x, HookAccel * Dir.x * 1.5f);
+						Temp.y = SaturatedAdd(-DragSpeed, DragSpeed, pCore->m_Vel.y, HookAccel * Dir.y * 1.5f);
+						pCore->m_Vel = ClampVel(pCore->m_MoveRestrictions, Temp);
+						// add a little force to the guy who has the grip
+						Temp.x = SaturatedAdd(-DragSpeed, DragSpeed, m_Vel.x, -HookAccel * Dir.x * 0.25f);
+						Temp.y = SaturatedAdd(-DragSpeed, DragSpeed, m_Vel.y, -HookAccel * Dir.y * 0.25f);
+						m_Vel = ClampVel(m_MoveRestrictions, Temp);
+					}
 				}
 			}
 		}

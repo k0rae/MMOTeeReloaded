@@ -238,8 +238,10 @@ public:
 	int m_HookTick;
 	int m_HookState;
 	int m_HookedPlayer;
+	CCharacterCore *m_pHookedDummy;
 	std::set<int> m_AttachedPlayers;
 	void SetHookedPlayer(int HookedPlayer);
+	bool m_Alive;
 
 	int m_ActiveWeapon;
 	struct WeaponStat

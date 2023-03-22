@@ -107,6 +107,8 @@ public:
 	*/
 	virtual bool OnEntity(int Index, int x, int y, int Layer, int Flags, bool Initial, int Number = 0);
 
+	virtual bool OnQuadEntity(const char *pLayerName, vec2 Pivot, vec2 *pPoints);
+
 	virtual void OnPlayerConnect(class CPlayer *pPlayer);
 	virtual void OnPlayerDisconnect(class CPlayer *pPlayer, const char *pReason);
 

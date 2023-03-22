@@ -720,41 +720,6 @@ void CGameTeams::SwapTeamCharacters(CPlayer *pPrimaryPlayer, CPlayer *pTargetPla
 
 		return;
 	}
-
-	CSaveTee PrimarySavedTee;
-	PrimarySavedTee.Save(pPrimaryPlayer->GetCharacter());
-
-	CSaveTee SecondarySavedTee;
-	SecondarySavedTee.Save(pTargetPlayer->GetCharacter());
-
-	PrimarySavedTee.Load(pTargetPlayer->GetCharacter(), Team, true);
-	SecondarySavedTee.Load(pPrimaryPlayer->GetCharacter(), Team, true);
-
-	if(Team >= 1)
-	{
-		for(const auto &pPlayer : GameServer()->m_apPlayers)
-		{
-			CCharacter *pChar = pPlayer ? pPlayer->GetCharacter() : nullptr;
-			if(pChar && pChar->Team() == Team && pChar != pPrimaryPlayer->GetCharacter() && pChar != pTargetPlayer->GetCharacter())
-				pChar->m_StartTime = pPrimaryPlayer->GetCharacter()->m_StartTime;
-		}
-	}
-	std::swap(m_aTeeStarted[pPrimaryPlayer->GetCID()], m_aTeeStarted[pTargetPlayer->GetCID()]);
-	std::swap(m_aTeeFinished[pPrimaryPlayer->GetCID()], m_aTeeFinished[pTargetPlayer->GetCID()]);
-	std::swap(pPrimaryPlayer->GetCharacter()->GetRescueTeeRef(), pTargetPlayer->GetCharacter()->GetRescueTeeRef());
-
-	GameServer()->m_World.SwapClients(pPrimaryPlayer->GetCID(), pTargetPlayer->GetCID());
-
-	if(GameServer()->TeeHistorianActive())
-	{
-		GameServer()->TeeHistorian()->RecordPlayerSwap(pPrimaryPlayer->GetCID(), pTargetPlayer->GetCID());
-	}
-
-	str_format(aBuf, sizeof(aBuf),
-		"%s has swapped with %s.",
-		Server()->ClientName(pPrimaryPlayer->GetCID()), Server()->ClientName(pTargetPlayer->GetCID()));
-
-	GameServer()->SendChatTeam(Team, aBuf);
 }
 
 void CGameTeams::ProcessSaveTeam()

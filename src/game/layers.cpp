@@ -2,6 +2,7 @@
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "layers.h"
 
+#include "gamecore.h"
 #include "mapitems.h"
 #include "mapitems_ex.h"
 
@@ -44,83 +45,94 @@ void CLayers::Init(class IKernel *pKernel)
 	{
 		CMapItemGroup *pGroup = GetGroup(g);
 		CMapItemGroupEx *pGroupEx = GetGroupEx(g);
-		for(int l = 0; l < pGroup->m_NumLayers; l++)
+
+		char aGroupName[12];
+		IntsToStr(pGroup->m_aName, 3, aGroupName);
+
+		if (!str_comp(aGroupName, "#Entities"))
+			m_pEntitiesGroup = pGroup;
+		else
 		{
-			CMapItemLayer *pLayer = GetLayer(pGroup->m_StartLayer + l);
-
-			if(pLayer->m_Type == LAYERTYPE_TILES)
+			for(int l = 0; l < pGroup->m_NumLayers; l++)
 			{
-				CMapItemLayerTilemap *pTilemap = reinterpret_cast<CMapItemLayerTilemap *>(pLayer);
+				CMapItemLayer *pLayer = GetLayer(pGroup->m_StartLayer + l);
 
-				if(pTilemap->m_Flags & TILESLAYERFLAG_GAME)
+				if(pLayer->m_Type == LAYERTYPE_TILES)
 				{
-					m_pGameLayer = pTilemap;
-					m_pGameGroup = pGroup;
-					m_pGameGroupEx = pGroupEx;
+					CMapItemLayerTilemap *pTilemap = reinterpret_cast<CMapItemLayerTilemap *>(pLayer);
 
-					// make sure the game group has standard settings
-					m_pGameGroup->m_OffsetX = 0;
-					m_pGameGroup->m_OffsetY = 0;
-					m_pGameGroup->m_ParallaxX = 100;
-					m_pGameGroup->m_ParallaxY = 100;
+					if(pTilemap->m_Flags & TILESLAYERFLAG_GAME)
+					{
+						m_pGameLayer = pTilemap;
+						m_pGameGroup = pGroup;
+						m_pGameGroupEx = pGroupEx;
 
-					if(m_pGameGroup->m_Version >= 2)
-					{
-						m_pGameGroup->m_UseClipping = 0;
-						m_pGameGroup->m_ClipX = 0;
-						m_pGameGroup->m_ClipY = 0;
-						m_pGameGroup->m_ClipW = 0;
-						m_pGameGroup->m_ClipH = 0;
-					}
+						// make sure the game group has standard settings
+						m_pGameGroup->m_OffsetX = 0;
+						m_pGameGroup->m_OffsetY = 0;
+						m_pGameGroup->m_ParallaxX = 100;
+						m_pGameGroup->m_ParallaxY = 100;
 
-					if(pGroupEx)
-						pGroupEx->m_ParallaxZoom = 100;
+						if(m_pGameGroup->m_Version >= 2)
+						{
+							m_pGameGroup->m_UseClipping = 0;
+							m_pGameGroup->m_ClipX = 0;
+							m_pGameGroup->m_ClipY = 0;
+							m_pGameGroup->m_ClipW = 0;
+							m_pGameGroup->m_ClipH = 0;
+						}
 
-					//break;
-				}
-				if(pTilemap->m_Flags & TILESLAYERFLAG_TELE)
-				{
-					if(pTilemap->m_Version <= 2)
-					{
-						pTilemap->m_Tele = *((int *)(pTilemap) + 15);
+						if(pGroupEx)
+							pGroupEx->m_ParallaxZoom = 100;
+
+						//break;
 					}
-					m_pTeleLayer = pTilemap;
-				}
-				if(pTilemap->m_Flags & TILESLAYERFLAG_SPEEDUP)
-				{
-					if(pTilemap->m_Version <= 2)
+					if(pTilemap->m_Flags & TILESLAYERFLAG_TELE)
 					{
-						pTilemap->m_Speedup = *((int *)(pTilemap) + 16);
+						if(pTilemap->m_Version <= 2)
+						{
+							pTilemap->m_Tele = *((int *)(pTilemap) + 15);
+						}
+						m_pTeleLayer = pTilemap;
 					}
-					m_pSpeedupLayer = pTilemap;
-				}
-				if(pTilemap->m_Flags & TILESLAYERFLAG_FRONT)
-				{
-					if(pTilemap->m_Version <= 2)
+					if(pTilemap->m_Flags & TILESLAYERFLAG_SPEEDUP)
 					{
-						pTilemap->m_Front = *((int *)(pTilemap) + 17);
+						if(pTilemap->m_Version <= 2)
+						{
+							pTilemap->m_Speedup = *((int *)(pTilemap) + 16);
+						}
+						m_pSpeedupLayer = pTilemap;
 					}
-					m_pFrontLayer = pTilemap;
-				}
-				if(pTilemap->m_Flags & TILESLAYERFLAG_SWITCH)
-				{
-					if(pTilemap->m_Version <= 2)
+					if(pTilemap->m_Flags & TILESLAYERFLAG_FRONT)
 					{
-						pTilemap->m_Switch = *((int *)(pTilemap) + 18);
+						if(pTilemap->m_Version <= 2)
+						{
+							pTilemap->m_Front = *((int *)(pTilemap) + 17);
+						}
+						m_pFrontLayer = pTilemap;
 					}
-					m_pSwitchLayer = pTilemap;
-				}
-				if(pTilemap->m_Flags & TILESLAYERFLAG_TUNE)
-				{
-					if(pTilemap->m_Version <= 2)
+					if(pTilemap->m_Flags & TILESLAYERFLAG_SWITCH)
 					{
-						pTilemap->m_Tune = *((int *)(pTilemap) + 19);
+						if(pTilemap->m_Version <= 2)
+						{
+							pTilemap->m_Switch = *((int *)(pTilemap) + 18);
+						}
+						m_pSwitchLayer = pTilemap;
 					}
-					m_pTuneLayer = pTilemap;
+					if(pTilemap->m_Flags & TILESLAYERFLAG_TUNE)
+					{
+						if(pTilemap->m_Version <= 2)
+						{
+							pTilemap->m_Tune = *((int *)(pTilemap) + 19);
+						}
+						m_pTuneLayer = pTilemap;
+					}
 				}
 			}
 		}
 	}
+
+	dbg_assert((bool)m_pEntitiesGroup, "No #Entities group");
 
 	InitTilemapSkip();
 }

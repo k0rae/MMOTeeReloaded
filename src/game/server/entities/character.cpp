@@ -15,6 +15,8 @@
 #include <game/server/player.h>
 #include <game/server/teams.h>
 
+#include <game/server/mmo/dummies/dummy_base.h>
+
 MACRO_ALLOC_POOL_ID_IMPL(CCharacter, MAX_CLIENTS)
 
 // Character, "physical" player's part
@@ -459,9 +461,8 @@ void CCharacter::FireWeapon()
 			vec2 Temp = pTarget->m_Core.m_Vel + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f;
 			Temp = ClampVel(pTarget->m_MoveRestrictions, Temp);
 			Temp -= pTarget->m_Core.m_Vel;
-			pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
+			pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, 3,
 				m_pPlayer->GetCID(), m_Core.m_ActiveWeapon);
-			pTarget->UnFreeze();
 
 			if(m_FreezeHammer)
 				pTarget->Freeze();
@@ -469,7 +470,44 @@ void CCharacter::FireWeapon()
 			Hits++;
 		}
 
-		// if we Hit anything, we have to wait for the reload
+		Num = GameServer()->m_World.FindEntities(ProjStartPos, GetProximityRadius(), apEnts,
+			MAX_CLIENTS, CGameWorld::ENTTYPE_DUMMY);
+
+		for(int i = 0; i < Num; ++i)
+		{
+			auto *pTarget = static_cast<CDummyBase *>(apEnts[i]);
+
+			if(!pTarget->IsAlive())
+				continue;
+
+			// set his velocity to fast upward (for now)
+			if(length(pTarget->m_Pos - ProjStartPos) > 0.0f)
+				GameServer()->CreateHammerHit(pTarget->m_Pos - normalize(pTarget->m_Pos - ProjStartPos) * GetProximityRadius() * 0.5f, TeamMask());
+			else
+				GameServer()->CreateHammerHit(ProjStartPos, TeamMask());
+
+			vec2 Dir;
+			if(length(pTarget->m_Pos - m_Pos) > 0.0f)
+				Dir = normalize(pTarget->m_Pos - m_Pos);
+			else
+				Dir = vec2(0.f, -1.f);
+
+			float Strength;
+			if(!m_TuneZone)
+				Strength = GameServer()->Tuning()->m_HammerStrength;
+			else
+				Strength = GameServer()->TuningList()[m_TuneZone].m_HammerStrength;
+
+			vec2 Temp = pTarget->Core()->m_Vel + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f;
+			//Temp = ClampVel(pTarget->m_MoveRestrictions, Temp);
+			Temp -= pTarget->Core()->m_Vel;
+			pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, 3,
+				m_pPlayer->GetCID(), m_Core.m_ActiveWeapon);
+
+			Hits++;
+		}
+
+		// if we Hit anything, we have to wait for to reload
 		if(Hits)
 		{
 			float FireDelay;
@@ -673,6 +711,7 @@ void CCharacter::OnDirectInput(CNetObj_PlayerInput *pNewInput)
 void CCharacter::ResetHook()
 {
 	m_Core.SetHookedPlayer(-1);
+	m_Core.m_pHookedDummy = 0x0;
 	m_Core.m_HookState = HOOK_RETRACTED;
 	m_Core.m_TriggeredEvents |= COREEVENT_HOOK_RETRACT;
 	m_Core.m_HookPos = m_Core.m_Pos;
@@ -1127,7 +1166,7 @@ void CCharacter::Snap(int SnappingClient)
 		for(const auto &AttachedPlayerID : m_Core.m_AttachedPlayers)
 		{
 			CCharacter *pOtherPlayer = GameServer()->GetPlayerChar(AttachedPlayerID);
-			if(pOtherPlayer && pOtherPlayer->m_Core.m_HookedPlayer == ID)
+			if(pOtherPlayer && pOtherPlayer->m_Core.m_HookedPlayer == m_pPlayer->GetCID())
 			{
 				if(!NetworkClippedLine(SnappingClient, m_Pos, pOtherPlayer->m_Pos))
 				{
@@ -1911,7 +1950,6 @@ void CCharacter::SetTeams(CGameTeams *pTeams)
 
 void CCharacter::SetRescue()
 {
-	m_RescueTee.Save(this);
 	m_SetSavePos = true;
 }
 
@@ -2144,7 +2182,7 @@ void CCharacter::Pause(bool Pause)
 		GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()] = 0;
 		GameServer()->m_World.RemoveEntity(this);
 
-		if(m_Core.m_HookedPlayer != -1) // Keeping hook would allow cheats
+		if(m_Core.m_HookedPlayer != -1 || m_Core.m_pHookedDummy) // Keeping hook would allow cheats
 		{
 			ResetHook();
 			GameWorld()->ReleaseHooked(GetPlayer()->GetCID());
@@ -2224,7 +2262,6 @@ void CCharacter::Rescue()
 		}
 
 		float StartTime = m_StartTime;
-		m_RescueTee.Load(this, Team());
 		// Don't load these from saved tee:
 		m_Core.m_Vel = vec2(0, 0);
 		m_Core.m_HookState = HOOK_IDLE;
@@ -2247,5 +2284,5 @@ CClientMask CCharacter::TeamMask()
 
 void CCharacter::SwapClients(int Client1, int Client2)
 {
-	m_Core.SetHookedPlayer(m_Core.m_HookedPlayer == Client1 ? Client2 : m_Core.m_HookedPlayer == Client2 ? Client1 : m_Core.m_HookedPlayer);
+	//m_Core.SetHookedPlayer(m_Core.m_HookedPlayer == Client1 ? Client2 : m_Core.m_HookedPlayer == Client2 ? Client1 : m_Core.m_HookedPlayer);
 }

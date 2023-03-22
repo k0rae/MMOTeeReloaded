@@ -3396,6 +3396,7 @@ void CGameContext::OnInit()
 
 	// create all entities from the game layer
 	CreateAllEntities(true);
+	CreateEntitiesMMO();
 
 	if(GIT_SHORTREV_HASH)
 		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "git-revision", GIT_SHORTREV_HASH);
@@ -4328,10 +4329,39 @@ void CGameContext::ClearBotSnapIDs()
 		i = BOT_IDS_OFFSET;
 }
 
-void CGameContext::CreateDummy(vec2 Pos)
+void CGameContext::CreateDummy(vec2 Pos, int DummyType)
 {
-	CDummyBase *pNewDummy = new CDummyBase(&m_World, Pos);
+	CDummyBase *pNewDummy = new CDummyBase(&m_World, Pos, DummyType);
 	pNewDummy->SetName("Test");
 	pNewDummy->SetClan("TestClan");
 	pNewDummy->SetTeeInfo(CTeeInfo("greyfox", 1, 0, 0)); // NIGGA GREYFOX
+}
+
+void CGameContext::CreateEntitiesMMO()
+{
+	const CMapItemGroup *pGroup = m_Layers.EntityGroup();
+
+	char aLayerName[12];
+	for (int i = 0; i < pGroup->m_NumLayers; i++)
+	{
+		CMapItemLayer *pLayer = m_Layers.GetLayer(pGroup->m_StartLayer + i);
+		if (pLayer->m_Type == LAYERTYPE_QUADS)
+		{
+			CMapItemLayerQuads *pQuadLayer = (CMapItemLayerQuads *)pLayer;
+			IntsToStr(pQuadLayer->m_aName, 3, aLayerName);
+			const CQuad *pQuads = (const CQuad *)Kernel()->RequestInterface<IMap>()->GetDataSwapped(pQuadLayer->m_Data);
+
+			for(int q = 0; q < pQuadLayer->m_NumQuads; q++)
+			{
+				vec2 P0(fx2f(pQuads[q].m_aPoints[0].x), fx2f(pQuads[q].m_aPoints[0].y));
+				vec2 P1(fx2f(pQuads[q].m_aPoints[1].x), fx2f(pQuads[q].m_aPoints[1].y));
+				vec2 P2(fx2f(pQuads[q].m_aPoints[2].x), fx2f(pQuads[q].m_aPoints[2].y));
+				vec2 P3(fx2f(pQuads[q].m_aPoints[3].x), fx2f(pQuads[q].m_aPoints[3].y));
+				vec2 Pivot(fx2f(pQuads[q].m_aPoints[4].x), fx2f(pQuads[q].m_aPoints[4].y));
+				vec2 aPoints[4] = {P0, P1, P2, P3};
+
+				m_pController->OnQuadEntity(aLayerName, Pivot, aPoints);
+			}
+		}
+	}
 }

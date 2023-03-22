@@ -22,6 +22,7 @@ class CLayers
 	CMapItemGroup *m_pGameGroup;
 	CMapItemGroupEx *m_pGameGroupEx;
 	CMapItemLayerTilemap *m_pGameLayer;
+	CMapItemGroup *m_pEntitiesGroup;
 	IMap *m_pMap;
 
 	void InitTilemapSkip();
@@ -36,6 +37,7 @@ public:
 	CMapItemGroup *GameGroup() const { return m_pGameGroup; }
 	CMapItemGroupEx *GameGroupEx() const { return m_pGameGroupEx; }
 	CMapItemLayerTilemap *GameLayer() const { return m_pGameLayer; }
+	CMapItemGroup *EntityGroup() const { return m_pEntitiesGroup; }
 	CMapItemGroup *GetGroup(int Index) const;
 	CMapItemGroupEx *GetGroupEx(int Index) const;
 	CMapItemLayer *GetLayer(int Index) const;

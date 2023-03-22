@@ -2,16 +2,88 @@
 
 #include <game/server/gamecontext.h>
 
-CDummyBase::CDummyBase(CGameWorld *pWorld, vec2 Pos) :
+CDummyBase::CDummyBase(CGameWorld *pWorld, vec2 Pos, int DummyType) :
 	CEntity(pWorld, CGameWorld::ENTTYPE_DUMMY, Pos)
 {
 	GameWorld()->InsertEntity(this);
-
+	GameWorld()->m_Core.m_vDummies.push_back(&m_Core);
 	m_Core.Init(&GameWorld()->m_Core, Collision());
 
-	m_Core.m_Pos = Pos;
+	m_SpawnPos = Pos;
+	m_NoDamage = false;
+	m_DummyType = DummyType;
+	m_DefaultEmote = EMOTE_NORMAL;
 
-	GameWorld()->m_Core.m_vDummies.push_back(&m_Core);
+	str_copy(m_aName, "[NULL BOT]");
+	str_copy(m_aClan, "");
+
+	Spawn();
+}
+
+void CDummyBase::Spawn()
+{
+	m_Health = 10;
+	m_Armor = 0;
+	m_Alive = true;
+	m_SpawnTick = 0;
+	m_EmoteType = EMOTE_NORMAL;
+	m_EmoteStop = 0;
+
+	m_Core.m_Pos = m_SpawnPos;
+	m_Pos = m_SpawnPos;
+	m_Core.m_Vel = vec2(0, 0);
+
+	GameServer()->CreatePlayerSpawn(m_Pos);
+}
+
+void CDummyBase::Die()
+{
+	m_Alive = false;
+	m_SpawnTick = Server()->Tick() + Server()->TickSpeed();
+
+	GameServer()->CreateDeath(m_Pos, 0);
+	GameServer()->CreateSound(m_Pos, SOUND_PLAYER_DIE);
+}
+
+void CDummyBase::TakeDamage(vec2 Force, int Damage, int From, int Weapon)
+{
+	if(Damage)
+	{
+		// Emote
+		m_EmoteType = EMOTE_PAIN;
+		m_EmoteStop = Server()->Tick() + 500 * Server()->TickSpeed() / 1000;
+
+		if(m_Armor)
+		{
+			if(Damage <= m_Armor)
+			{
+				m_Armor -= Damage;
+				Damage = 0;
+			}
+			else
+			{
+				Damage -= m_Armor;
+				m_Armor = 0;
+			}
+		}
+
+		if(From >= 0)
+			m_Health -= Damage;
+
+		if(From >= 0 && GameServer()->m_apPlayers[From])
+		{
+			//GameServer()->CreateSound(m_Pos, SOUND_HIT, -1);
+
+			//int Steal = (100 - Server()->GetItemCount(From, ACCESSORY_ADD_STEAL_HP) > 30) ? 100 - Server()->GetItemCount(From, ACCESSORY_ADD_STEAL_HP) > 30 : 30;
+			//pFrom->m_Health += Steal;
+		}
+	}
+
+	if (m_Health <= 0)
+		Die();
+
+	vec2 Temp = m_Core.m_Vel + Force;
+	m_Core.m_Vel = Temp;
 }
 
 void CDummyBase::Destroy()
@@ -25,8 +97,19 @@ void CDummyBase::Destroy()
 
 void CDummyBase::Tick()
 {
-	// Some physic
-	m_Core.Tick(false);
+	m_Core.m_Alive = m_Alive;
+
+	if (Server()->Tick() > m_SpawnTick && !m_Alive)
+	{
+		Spawn();
+	}
+
+	// Don't calc phys if dummy is dead
+	if (!m_Alive)
+		return;
+
+	m_Core.m_Input = m_Input;
+	m_Core.Tick(true);
 	m_Core.Move();
 
 	m_Pos = m_Core.m_Pos;
@@ -67,6 +150,10 @@ void CDummyBase::Snap(int SnappingClient)
 	pPlayerInfo->m_ClientID = SelfID;
 	pPlayerInfo->m_Team = 10;
 
+	// Don't snap character if dummy is dead
+	if (!m_Alive)
+		return;
+
 	// Snap character
 	CNetObj_Character *pCharacter = Server()->SnapNewItem<CNetObj_Character>(SelfID);
 	if(!pCharacter)
@@ -75,7 +162,7 @@ void CDummyBase::Snap(int SnappingClient)
 	m_Core.Write(pCharacter);
 
 	pCharacter->m_Tick = Server()->Tick();
-	pCharacter->m_Emote = EMOTE_NORMAL;
+	pCharacter->m_Emote = (m_EmoteStop > Server()->Tick()) ? m_EmoteType : m_DefaultEmote;
 	pCharacter->m_HookedPlayer = -1;
 	pCharacter->m_AttackTick = 0;
 	pCharacter->m_Direction = 0;
