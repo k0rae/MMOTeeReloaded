@@ -11,8 +11,14 @@
 struct SAccountRegisterResult;
 struct SAccountLoginResult;
 
+enum
+{
+	MAX_LOGIN_LENGTH = 64
+};
+
 struct SAccountData
 {
+	char m_aAccountName[MAX_LOGIN_LENGTH];
 	int m_ID;
 	int m_Level;
 	int m_EXP;
@@ -88,11 +94,6 @@ public:
 	{
 		return (GetItem(ItemID).m_Count != 0);
 	}
-};
-
-enum
-{
-	MAX_LOGIN_LENGTH = 64
 };
 
 class CAccountManager : public CServerComponent

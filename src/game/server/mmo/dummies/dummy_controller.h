@@ -10,6 +10,9 @@ class CDummyController
 protected:
 	class CDummyBase *m_pDummyBase;
 
+	vec2 m_Pos;
+	vec2 m_Vel;
+
 	class CGameContext *GameServer();
 	class IServer *Server();
 	class CGameWorld *GameWorld();

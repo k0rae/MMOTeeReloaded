@@ -18,10 +18,12 @@ class CDummyBase : public CEntity
 	CCharacterCore m_Core;
 	CTeeInfo m_TeeInfo;
 	CNetObj_PlayerInput m_Input;
+	CNetObj_PlayerInput m_PrevInput;
 
 	vec2 m_SpawnPos;
 	bool m_Alive;
 	int m_SpawnTick;
+	int m_ReloadTimer;
 
 	char m_aName[MAX_NAME_LENGTH];
 	char m_aClan[MAX_CLAN_LENGTH];
@@ -31,7 +33,7 @@ class CDummyBase : public CEntity
 	bool m_NoDamage;
 
 	int m_DummyType;
-	CDummyController *m_pDummyController;
+	class CDummyController *m_pDummyController;
 
 	int m_DefaultEmote;
 	int m_EmoteType;
@@ -44,6 +46,7 @@ public:
 	void Spawn();
 	void Die();
 	void TakeDamage(vec2 Force, int Damage, int From, int Weapon);
+	void FireWeapon();
 
 	virtual void Destroy() override;
 	virtual void Tick() override;

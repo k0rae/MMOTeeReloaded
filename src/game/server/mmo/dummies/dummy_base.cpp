@@ -2,6 +2,11 @@
 
 #include <game/server/gamecontext.h>
 
+#include <game/server/entities/character.h>
+#include <game/server/entities/laser.h>
+#include <game/server/entities/projectile.h>
+
+// Mobs
 #include "mobs/slime.h"
 
 CDummyBase::CDummyBase(CGameWorld *pWorld, vec2 Pos, int DummyType) :
@@ -115,6 +120,134 @@ void CDummyBase::TakeDamage(vec2 Force, int Damage, int From, int Weapon)
 	m_Core.m_Vel = Temp;
 }
 
+void CDummyBase::FireWeapon()
+{
+	vec2 Direction = normalize(vec2(m_Input.m_TargetX, m_Input.m_TargetY));
+
+	bool FullAuto = false;
+	if(m_Core.m_ActiveWeapon == WEAPON_GRENADE || m_Core.m_ActiveWeapon == WEAPON_SHOTGUN || m_Core.m_ActiveWeapon == WEAPON_LASER)
+		FullAuto = true;
+
+	bool WillFire = (m_Input.m_Fire & 1) && (FullAuto || !(m_PrevInput.m_Fire & 1));
+	if (!WillFire)
+		return;
+
+	vec2 ProjStartPos = m_Pos + Direction * 28.f * 0.75f;
+
+	switch(m_Core.m_ActiveWeapon)
+	{
+	case WEAPON_HAMMER:
+	{
+		// reset objects Hit
+		GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE);
+
+		if(m_Core.m_HammerHitDisabled)
+			break;
+
+		CEntity *apEnts[MAX_CLIENTS];
+		int Hits = 0;
+		int Num = GameServer()->m_World.FindEntities(ProjStartPos, GetProximityRadius() * 0.5f, apEnts,
+			MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
+
+		for(int i = 0; i < Num; ++i)
+		{
+			auto *pTarget = static_cast<CCharacter *>(apEnts[i]);
+
+			if(!pTarget->IsAlive())
+				continue;
+
+			// set his velocity to fast upward (for now)
+			if(length(pTarget->m_Pos - ProjStartPos) > 0.0f)
+				GameServer()->CreateHammerHit(pTarget->m_Pos - normalize(pTarget->m_Pos - ProjStartPos) * GetProximityRadius() * 0.5f);
+			else
+				GameServer()->CreateHammerHit(ProjStartPos);
+
+			vec2 Dir;
+			if(length(pTarget->m_Pos - m_Pos) > 0.0f)
+				Dir = normalize(pTarget->m_Pos - m_Pos);
+			else
+				Dir = vec2(0.f, -1.f);
+
+			float Strength = GameServer()->Tuning()->m_HammerStrength;
+
+			vec2 Temp = pTarget->GetCore().m_Vel + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f;
+			Temp = ClampVel(pTarget->m_MoveRestrictions, Temp);
+			Temp -= pTarget->GetCore().m_Vel;
+			pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, 3,
+				-1, m_Core.m_ActiveWeapon);
+
+			Hits++;
+		}
+
+		// if we Hit anything, we have to wait for to reload
+		if(Hits)
+		{
+			float FireDelay = GameServer()->Tuning()->m_HammerHitFireDelay;
+			m_ReloadTimer = FireDelay * Server()->TickSpeed() / 1000;
+		}
+	}
+	break;
+
+	case WEAPON_GUN:
+	{
+		int Lifetime = (int)(Server()->TickSpeed() * GameServer()->Tuning()->m_GunLifetime);
+
+		new CProjectile(
+			GameWorld(),
+			WEAPON_GUN, //Type
+			-1, //Owner
+			ProjStartPos, //Pos
+			Direction, //Dir
+			Lifetime, //Span
+			false, //Freeze
+			false, //Explosive
+			-1 //SoundImpact
+		);
+
+		GameServer()->CreateSound(m_Pos, SOUND_GUN_FIRE);
+	}
+	break;
+
+	case WEAPON_SHOTGUN:
+	{
+		float LaserReach = GameServer()->Tuning()->m_LaserReach;
+
+		new CLaser(&GameServer()->m_World, m_Pos, Direction, LaserReach, -1, WEAPON_SHOTGUN);
+		GameServer()->CreateSound(m_Pos, SOUND_SHOTGUN_FIRE);
+	}
+	break;
+
+	case WEAPON_GRENADE:
+	{
+		int Lifetime = (int)(Server()->TickSpeed() * GameServer()->Tuning()->m_GrenadeLifetime);
+
+		new CProjectile(
+			GameWorld(),
+			WEAPON_GRENADE, //Type
+			-1, //Owner
+			ProjStartPos, //Pos
+			Direction, //Dir
+			Lifetime, //Span
+			false, //Freeze
+			true, //Explosive
+			SOUND_GRENADE_EXPLODE //SoundImpact
+		); //SoundImpact
+
+		GameServer()->CreateSound(m_Pos, SOUND_GRENADE_FIRE);
+	}
+	break;
+
+	case WEAPON_LASER:
+	{
+		float LaserReach = GameServer()->Tuning()->m_LaserReach;
+
+		new CLaser(GameWorld(), m_Pos, Direction, LaserReach, -1, WEAPON_LASER);
+		GameServer()->CreateSound(m_Pos, SOUND_LASER_FIRE);
+	}
+	break;
+	}
+}
+
 void CDummyBase::Destroy()
 {
 	for (int i = 0; i < GameWorld()->m_Core.m_vDummies.size(); i++)
@@ -141,10 +274,14 @@ void CDummyBase::Tick()
 		m_pDummyController->DummyTick();
 
 	m_Core.m_Input = m_Input;
+	m_Core.m_ActiveWeapon = m_Input.m_WantedWeapon;
 	m_Core.Tick(true);
 	m_Core.Move();
-
 	m_Pos = m_Core.m_Pos;
+
+	FireWeapon();
+
+	m_PrevInput = m_Input;
 }
 
 void CDummyBase::Snap(int SnappingClient)

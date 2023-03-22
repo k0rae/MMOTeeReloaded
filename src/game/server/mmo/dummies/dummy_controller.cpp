@@ -42,5 +42,8 @@ void CDummyController::ResetInput()
 void CDummyController::DummyTick()
 {
 	ResetInput();
+
+	m_Pos = m_pDummyBase->m_Pos;
+
 	Tick();
 }

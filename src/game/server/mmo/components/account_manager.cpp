@@ -89,6 +89,7 @@ bool CAccountManager::LoginThread(IDbConnection *pSqlServer, const ISqlData *pGa
 	pResult->m_AccData.m_EXP = pSqlServer->GetInt(3);
 	pResult->m_AccData.m_Money = pSqlServer->GetInt(4);
 	pResult->m_AccData.m_Donate = pSqlServer->GetInt(5);
+	str_copy(pResult->m_AccData.m_aAccountName, pData->m_aLogin);
 
 	// Load inventory
 	str_copy(aBuf, "SELECT item_id, count, quality, data FROM u_inv WHERE id = ?");
@@ -117,6 +118,15 @@ bool CAccountManager::LoginThread(IDbConnection *pSqlServer, const ISqlData *pGa
 
 void CAccountManager::Login(int ClientID, const char *pName, const char *pPasswordHash)
 {
+	for (CPlayer *pPly : GameServer()->m_apPlayers)
+	{
+		if (pPly && pPly->m_LoggedIn && !str_comp(pPly->m_AccData.m_aAccountName, pName))
+		{
+			GameServer()->SendChatTarget(ClientID, "Account is already in use.");
+			return;
+		}
+	}
+
 	auto pResult = std::make_shared<SAccountLoginResult>();
 	pResult->m_ClientID = ClientID;
 	m_vpLoginResults.push_back(pResult);
