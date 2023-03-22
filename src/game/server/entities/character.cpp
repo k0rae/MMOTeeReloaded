@@ -896,9 +896,7 @@ void CCharacter::TickPaused()
 
 bool CCharacter::IncreaseHealth(int Amount)
 {
-	if(m_Health >= 10)
-		return false;
-	m_Health = clamp(m_Health + Amount, 0, 10);
+	m_Health += Amount;
 	return true;
 }
 
@@ -969,8 +967,10 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 			}
 		}
 
-		if(From >= 0)
-			m_Health -= Dmg;
+		m_Health -= Dmg;
+
+		if (m_Health <= 0)
+			Die((From >= 0) ? From : m_pPlayer->GetCID(), Weapon);
 
 		// do damage Hit sound
 		if(From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])
@@ -1956,7 +1956,6 @@ void CCharacter::SetRescue()
 void CCharacter::DDRaceTick()
 {
 	mem_copy(&m_Input, &m_SavedInput, sizeof(m_Input));
-	m_Armor = clamp(10 - (m_FreezeTime / 15), 0, 10);
 	if(m_Input.m_Direction != 0 || m_Input.m_Jump != 0)
 		m_LastMove = Server()->Tick();
 
