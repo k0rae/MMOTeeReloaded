@@ -212,6 +212,7 @@ public:
 
 	CTuningParams m_aTuning[2];
 	class CCharacterCore *m_apCharacters[MAX_CLIENTS];
+	std::vector<class CCharacterCore *> m_vDummies;
 	CPrng *m_pPrng;
 
 	void InitSwitchers(int HighestSwitchNumber);

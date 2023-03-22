@@ -10,8 +10,8 @@
 #include <game/server/player.h>
 #include <game/version.h>
 
-#define GAME_TYPE_NAME "DDraceNetwork"
-#define TEST_TYPE_NAME "TestDDraceNetwork"
+#define GAME_TYPE_NAME "MMOTee"
+#define TEST_TYPE_NAME "MMOTee"
 
 CGameControllerDDRace::CGameControllerDDRace(class CGameContext *pGameServer) :
 	IGameController(pGameServer), m_Teams(pGameServer), m_pLoadBestTimeResult(nullptr)
@@ -22,11 +22,6 @@ CGameControllerDDRace::CGameControllerDDRace(class CGameContext *pGameServer) :
 }
 
 CGameControllerDDRace::~CGameControllerDDRace() = default;
-
-CScore *CGameControllerDDRace::Score()
-{
-	return GameServer()->Score();
-}
 
 void CGameControllerDDRace::OnCharacterSpawn(CCharacter *pChr)
 {

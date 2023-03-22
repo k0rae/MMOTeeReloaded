@@ -31,6 +31,8 @@
 #include "gamemodes/DDRace.h"
 #include "player.h"
 
+#include <game/server/mmo/dummies/dummy_base.h>
+
 
 // Not thread-safe!
 class CClientChatLogger : public ILogger
@@ -87,7 +89,6 @@ void CGameContext::Construct(int Resetting)
 	m_NumVoteOptions = 0;
 	m_LastMapVote = 0;
 
-	m_pScore = nullptr;
 	m_NumMutes = 0;
 	m_NumVoteMutes = 0;
 
@@ -102,6 +103,8 @@ void CGameContext::Construct(int Resetting)
 
 	m_aDeleteTempfile[0] = 0;
 	m_TeeHistorianActive = false;
+
+	ClearBotSnapIDs();
 }
 
 void CGameContext::Destruct(int Resetting)
@@ -111,12 +114,6 @@ void CGameContext::Destruct(int Resetting)
 
 	if(Resetting == NO_RESET)
 		delete m_pVoteOptionHeap;
-
-	if(m_pScore)
-	{
-		delete m_pScore;
-		m_pScore = nullptr;
-	}
 }
 
 CGameContext::CGameContext()
@@ -3723,6 +3720,8 @@ void CGameContext::OnSnap(int ClientID)
 		Server()->SendMsg(&Msg, MSGFLAG_RECORD | MSGFLAG_NOSEND, ClientID);
 	}
 
+	ClearBotSnapIDs();
+
 	m_pController->Snap(ClientID);
 
 	for(auto &pPlayer : m_apPlayers)
@@ -4314,4 +4313,25 @@ void CGameContext::OnUpdatePlayerServerInfo(char *aBuf, int BufSize, int ID)
 		aJsonSkin,
 		JsonBool(m_apPlayers[ID]->IsAfk()),
 		m_apPlayers[ID]->GetTeam());
+}
+
+int CGameContext::GetNextBotSnapID(int ClientID)
+{
+	int Prev = m_aBotSnapIDs[ClientID];
+	m_aBotSnapIDs[ClientID]++;
+	return ((Prev >= MAX_CLIENTS) ? -1 : Prev);
+}
+
+void CGameContext::ClearBotSnapIDs()
+{
+	for (int &i : m_aBotSnapIDs)
+		i = BOT_IDS_OFFSET;
+}
+
+void CGameContext::CreateDummy(vec2 Pos)
+{
+	CDummyBase *pNewDummy = new CDummyBase(&m_World, Pos);
+	pNewDummy->SetName("Test");
+	pNewDummy->SetClan("TestClan");
+	pNewDummy->SetTeeInfo(CTeeInfo("greyfox", 1, 0, 0)); // NIGGA GREYFOX
 }

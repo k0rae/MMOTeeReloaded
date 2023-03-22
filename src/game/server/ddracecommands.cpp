@@ -861,3 +861,9 @@ void CGameContext::LogEvent(const char *Description, int ClientID)
 		str_copy(pNewEntry->m_aClientName, Server()->ClientName(ClientID));
 	}
 }
+
+void CGameContext::ConCreateDummy(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	pSelf->CreateDummy(pSelf->GetPlayerChar(pResult->m_ClientID)->m_Pos);
+}

@@ -46,16 +46,15 @@
 
 enum
 {
-	NUM_TUNEZONES = 256
+	NUM_TUNEZONES = 256,
+	BOT_IDS_OFFSET = 24
 };
 
 class CCharacter;
 class CConfig;
 class CHeap;
 class CPlayer;
-class CScore;
 class CUnpacker;
-class IAntibot;
 class IGameController;
 class IEngine;
 class IStorage;
@@ -82,7 +81,6 @@ class CGameContext : public IGameServer
 	IConsole *m_pConsole;
 	IEngine *m_pEngine;
 	IStorage *m_pStorage;
-	IAntibot *m_pAntibot;
 	CLayers m_Layers;
 	CCollision m_Collision;
 	protocol7::CNetObjHandler m_NetObjHandler7;
@@ -152,7 +150,6 @@ public:
 	CCollision *Collision() { return &m_Collision; }
 	CTuningParams *Tuning() { return &m_Tuning; }
 	CTuningParams *TuningList() { return &m_aTuningList[0]; }
-	IAntibot *Antibot() { return m_pAntibot; }
 	CTeeHistorian *TeeHistorian() { return &m_TeeHistorian; }
 	bool TeeHistorianActive() const { return m_TeeHistorianActive; }
 
@@ -327,7 +324,6 @@ private:
 	// starting 1 to make 0 the special value "no client id"
 	uint32_t m_NextUniqueClientID = 1;
 	bool m_VoteWillPass;
-	CScore *m_pScore;
 
 	// DDRace Console Commands
 
@@ -459,7 +455,6 @@ private:
 
 public:
 	CLayers *Layers() { return &m_Layers; }
-	CScore *Score() { return m_pScore; }
 
 	enum
 	{
@@ -489,6 +484,17 @@ public:
 	std::vector<CServerComponent*> m_vpComponents;
 
 	CAccountManager m_AccountManager;
+
+	int GetNextBotSnapID(int ClientID);
+
+	void CreateDummy(vec2 Pos);
+
+private:
+	int m_aBotSnapIDs[MAX_CLIENTS];
+
+	void ClearBotSnapIDs();
+
+	static void ConCreateDummy(IConsole::IResult *pResult, void *pUserData);
 };
 
 #endif

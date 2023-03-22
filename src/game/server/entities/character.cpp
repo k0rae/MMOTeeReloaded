@@ -912,8 +912,35 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 {
 	if(Dmg)
 	{
+		// Emote
 		m_EmoteType = EMOTE_PAIN;
 		m_EmoteStop = Server()->Tick() + 500 * Server()->TickSpeed() / 1000;
+
+		if(m_Armor)
+		{
+			if(Dmg <= m_Armor)
+			{
+				m_Armor -= Dmg;
+				Dmg = 0;
+			}
+			else
+			{
+				Dmg -= m_Armor;
+				m_Armor = 0;
+			}
+		}
+
+		if(From >= 0)
+			m_Health -= Dmg;
+
+		// do damage Hit sound
+		if(From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])
+		{
+			GameServer()->CreateSound(GameServer()->m_apPlayers[From]->m_ViewPos, SOUND_HIT, -1);
+
+			//int Steal = (100 - Server()->GetItemCount(From, ACCESSORY_ADD_STEAL_HP) > 30) ? 100 - Server()->GetItemCount(From, ACCESSORY_ADD_STEAL_HP) > 30 : 30;
+			//pFrom->m_Health += Steal;
+		}
 	}
 
 	vec2 Temp = m_Core.m_Vel + Force;

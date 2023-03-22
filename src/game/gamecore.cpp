@@ -7,6 +7,7 @@
 #include "teamscore.h"
 
 #include <engine/shared/config.h>
+#include <game/server/mmo/dummies/dummy_base.h>
 
 const char *CTuningParams::ms_apNames[] =
 	{
@@ -424,7 +425,7 @@ void CCharacterCore::TickDeferred()
 			if(pCharCore == this || (m_Id != -1 && !m_pTeams->CanCollide(m_Id, i)))
 				continue; // make sure that we don't nudge our self
 
-			if(!(m_Super || pCharCore->m_Super) && (m_Solo || pCharCore->m_Solo))
+			if(m_Solo || pCharCore->m_Solo)
 				continue;
 
 			// handle player <-> player collision
@@ -462,11 +463,40 @@ void CCharacterCore::TickDeferred()
 						Temp.x = SaturatedAdd(-DragSpeed, DragSpeed, pCharCore->m_Vel.x, HookAccel * Dir.x * 1.5f);
 						Temp.y = SaturatedAdd(-DragSpeed, DragSpeed, pCharCore->m_Vel.y, HookAccel * Dir.y * 1.5f);
 						pCharCore->m_Vel = ClampVel(pCharCore->m_MoveRestrictions, Temp);
-						// add a little bit force to the guy who has the grip
+						// add a little force to the guy who has the grip
 						Temp.x = SaturatedAdd(-DragSpeed, DragSpeed, m_Vel.x, -HookAccel * Dir.x * 0.25f);
 						Temp.y = SaturatedAdd(-DragSpeed, DragSpeed, m_Vel.y, -HookAccel * Dir.y * 0.25f);
 						m_Vel = ClampVel(m_MoveRestrictions, Temp);
 					}
+				}
+			}
+		}
+
+		// Handle collision with dummies
+		for (CCharacterCore *pCore : m_pWorld->m_vDummies)
+		{
+			if (pCore == this)
+				continue;
+
+			float Distance = distance(m_Pos, pCore->m_Pos);
+			if(Distance > 0)
+			{
+				vec2 Dir = normalize(m_Pos - pCore->m_Pos);
+
+				bool CanCollide = (m_Super || pCore->m_Super) || (!m_CollisionDisabled && !pCore->m_CollisionDisabled && m_Tuning.m_PlayerCollision);
+
+				if(CanCollide && Distance < PhysicalSize() * 1.25f && Distance > 0.0f)
+				{
+					float a = (PhysicalSize() * 1.45f - Distance);
+					float Velocity = 0.5f;
+
+					// make sure that we don't add excess force by checking the
+					// direction against the current velocity. if not zero.
+					if(length(m_Vel) > 0.0001f)
+						Velocity = 1 - (dot(normalize(m_Vel), Dir) + 1) / 2; // Wdouble-promotion don't fix this as this might change game physics
+
+					m_Vel += Dir * a * (Velocity * 0.75f);
+					m_Vel *= 0.85f;
 				}
 			}
 		}

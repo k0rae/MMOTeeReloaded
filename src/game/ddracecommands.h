@@ -62,4 +62,7 @@ CONSOLE_COMMAND("dump_log", "?i[seconds]", CFGFLAG_SERVER, ConDumpLog, this, "Sh
 
 CONSOLE_COMMAND("freezehammer", "v[id]", CFGFLAG_SERVER | CMDFLAG_TEST, ConFreezeHammer, this, "Gives a player Freeze Hammer")
 CONSOLE_COMMAND("unfreezehammer", "v[id]", CFGFLAG_SERVER | CMDFLAG_TEST, ConUnFreezeHammer, this, "Removes Freeze Hammer from a player")
+
+CONSOLE_COMMAND("create_dummy", "", CFGFLAG_SERVER | CMDFLAG_TEST, ConCreateDummy, this, "")
+
 #undef CONSOLE_COMMAND
