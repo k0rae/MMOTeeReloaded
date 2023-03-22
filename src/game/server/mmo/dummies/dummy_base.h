@@ -13,6 +13,8 @@ enum
 
 class CDummyBase : public CEntity
 {
+	friend class CDummyController;
+
 	CCharacterCore m_Core;
 	CTeeInfo m_TeeInfo;
 	CNetObj_PlayerInput m_Input;
