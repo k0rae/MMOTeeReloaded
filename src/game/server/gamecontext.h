@@ -21,6 +21,7 @@
 
 // Components
 #include "mmo/components/account_manager.h"
+#include "mmo/components/vote_menu.h"
 
 /*
 	Tick
@@ -485,6 +486,7 @@ public:
 	std::vector<CServerComponent*> m_vpComponents;
 
 	CAccountManager m_AccountManager;
+	CVoteMenu m_VoteMenu;
 
 	int GetNextBotSnapID(int ClientID);
 	void CreateDummy(vec2 Pos, int DummyType);
