@@ -224,9 +224,9 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
 	}
 
 	// deal damage
-	CEntity *apEnts[MAX_CLIENTS];
 	float Radius = 135.0f;
 	float InnerRadius = 48.0f;
+	CEntity *apEnts[MAX_CLIENTS];
 	int Num = m_World.FindEntities(Pos, Radius, apEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
 	CClientMask TeamMask = CClientMask().set();
 	for(int i = 0; i < Num; i++)
@@ -266,6 +266,32 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
 
 			pChr->TakeDamage(ForceDir * Dmg * 2, (int)Dmg, Owner, Weapon);
 		}
+	}
+
+	// Deal damage to dummies
+	Num = m_World.FindEntities(Pos, Radius, apEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_DUMMY);
+
+	for(int i = 0; i < Num; i++)
+	{
+		auto *pDummy = static_cast<CDummyBase *>(apEnts[i]);
+		vec2 Diff = pDummy->m_Pos - Pos;
+		vec2 ForceDir(0, 1);
+		float l = length(Diff);
+		if(l)
+			ForceDir = normalize(Diff);
+		l = 1 - clamp((l - InnerRadius) / (Radius - InnerRadius), 0.0f, 1.0f);
+		float Strength;
+		if(Owner == -1 || !m_apPlayers[Owner] || !m_apPlayers[Owner]->m_TuneZone)
+			Strength = Tuning()->m_ExplosionStrength;
+		else
+			Strength = TuningList()[m_apPlayers[Owner]->m_TuneZone].m_ExplosionStrength;
+
+		float Dmg = Strength * l;
+		if(!(int)Dmg)
+			continue;
+
+		if(pDummy && pDummy->IsAlive() && !pDummy->IsNoDamage())
+			pDummy->TakeDamage(ForceDir * Dmg * 2, (int)Dmg, Owner, Weapon);
 	}
 }
 
@@ -889,10 +915,10 @@ void CGameContext::OnTick()
 		pComponent->OnTick();
 
 	char aBroadcast[512];
-	char aExpProgress[10 + 1]; // +1 - is null termination
-	char aManaProgress[10 + 1];
-	char aHealthProgress[10 + 1];
-	char aArmorProgress[10 + 1];
+	char aExpProgress[10 * 2 + 1]; // +1 - is null termination
+	char aManaProgress[10 * 2 + 1];
+	char aHealthProgress[10 * 2 + 1];
+	char aArmorProgress[10 * 2 + 1];
 	for(int i = 0; i < MAX_PLAYERS; i++)
 	{
 		CPlayer *pPly = m_apPlayers[i];
@@ -927,11 +953,11 @@ void CGameContext::OnTick()
 						       "\n\n\n\n"
 						       "Lv: %d | Exp: %d/%d\n" // Main stat
 						       "-------------------\n"
-						       "[%s] %d%%\n" // Exp progress bar
-						       "[%s] %d/%d\n" // Mana
+						       "[%s] %d%% XP\n" // Exp progress bar
+						       "[%s] %d/%d MP\n" // Mana
 						       "-------------------\n"
-						       "[%s] %d/%d\n" // Health
-						       "[%s] %d/%d\n" // Armor
+						       "[%s] %d/%d HP\n" // Health
+						       "[%s] %d/%d AP\n" // Armor
 						       "\n\n%s" // Important text
 						       ),
 			AccData.m_Level, AccData.m_EXP, ExpForLevel, // Main stat

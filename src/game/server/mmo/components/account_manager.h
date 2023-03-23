@@ -108,6 +108,7 @@ class CAccountManager : public CServerComponent
 	// Threads
 	static bool RegisterThread(IDbConnection *pSqlServer, const ISqlData *pGameData, char *pError, int ErrorSize);
 	static bool LoginThread(IDbConnection *pSqlServer, const ISqlData *pGameData, char *pError, int ErrorSize);
+	static bool SaveThread(IDbConnection *pSqlServer, const ISqlData *pGameData, char *pError, int ErrorSize);
 
 	CDbConnectionPool *DBPool();
 
@@ -117,6 +118,8 @@ public:
 
 	void Register(int ClientID, const char *pName, const char *pPasswordHash);
 	void Login(int ClientID, const char *pName, const char *pPasswordHash);
+
+	void Save(int ClientID);
 };
 
 struct SAccountResultBase : ISqlResult
@@ -176,6 +179,16 @@ struct SAccountLoginRequest : ISqlData
 
 	char m_aLogin[MAX_LOGIN_LENGTH];
 	char m_aPasswordHash[MD5_MAXSTRSIZE];
+};
+
+struct SAccountSaveRequest : ISqlData
+{
+	SAccountSaveRequest() :
+		ISqlData(nullptr)
+	{}
+
+	SAccountData m_AccData;
+	CAccountInventory m_AccInventory;
 };
 
 #endif // GAME_SERVER_MMO_ACCOUNT_MANAGER_H

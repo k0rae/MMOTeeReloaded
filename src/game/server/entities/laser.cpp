@@ -5,11 +5,14 @@
 
 #include <engine/shared/config.h>
 
+#include <game/generated/server_data.h>
 #include <game/generated/protocol.h>
 #include <game/mapitems.h>
 
 #include <game/server/gamecontext.h>
 #include <game/server/gamemodes/DDRace.h>
+
+#include <game/server/mmo/dummies/dummy_base.h>
 
 CLaser::CLaser(CGameWorld *pGameWorld, vec2 Pos, vec2 Direction, float StartEnergy, int Owner, int Type) :
 	CEntity(pGameWorld, CGameWorld::ENTTYPE_LASER)
@@ -40,61 +43,74 @@ bool CLaser::HitCharacter(vec2 From, vec2 To)
 	vec2 At;
 	CCharacter *pOwnerChar = GameServer()->GetPlayerChar(m_Owner);
 	CCharacter *pHit;
+	CDummyBase *pHitDummy;
 	bool pDontHitSelf = g_Config.m_SvOldLaser || (m_Bounces == 0 && !m_WasTele);
 
 	if(pOwnerChar ? (!pOwnerChar->LaserHitDisabled() && m_Type == WEAPON_LASER) || (!pOwnerChar->ShotgunHitDisabled() && m_Type == WEAPON_SHOTGUN) : g_Config.m_SvHit)
+	{
 		pHit = GameServer()->m_World.IntersectCharacter(m_Pos, To, 0.f, At, pDontHitSelf ? pOwnerChar : 0, m_Owner);
+		pHitDummy = GameWorld()->IntersectDummy(m_Pos, To, 0.f, At);
+	}
 	else
+	{
 		pHit = GameServer()->m_World.IntersectCharacter(m_Pos, To, 0.f, At, pDontHitSelf ? pOwnerChar : 0, m_Owner, pOwnerChar);
+		pHitDummy = GameWorld()->IntersectDummy(m_Pos, To, 0.f, At);
+	}
 
-	if(!pHit || (pHit == pOwnerChar && g_Config.m_SvOldLaser) || (pHit != pOwnerChar && pOwnerChar ? (pOwnerChar->LaserHitDisabled() && m_Type == WEAPON_LASER) || (pOwnerChar->ShotgunHitDisabled() && m_Type == WEAPON_SHOTGUN) : !g_Config.m_SvHit))
+	if(!pHit || !pHitDummy || (pHit == pOwnerChar && g_Config.m_SvOldLaser) || (pHit != pOwnerChar && pOwnerChar ? (pOwnerChar->LaserHitDisabled() && m_Type == WEAPON_LASER) || (pOwnerChar->ShotgunHitDisabled() && m_Type == WEAPON_SHOTGUN) : !g_Config.m_SvHit))
 		return false;
+
 	m_From = From;
 	m_Pos = At;
 	m_Energy = -1;
 	if(m_Type == WEAPON_SHOTGUN)
 	{
-		vec2 Temp;
-
-		float Strength;
-		if(!m_TuneZone)
-			Strength = GameServer()->Tuning()->m_ShotgunStrength;
-		else
-			Strength = GameServer()->TuningList()[m_TuneZone].m_ShotgunStrength;
-
-		vec2 &HitPos = pHit->Core()->m_Pos;
-		if(!g_Config.m_SvOldLaser)
-		{
-			if(m_PrevPos != HitPos)
-			{
-				Temp = pHit->Core()->m_Vel + normalize(m_PrevPos - HitPos) * Strength;
-				pHit->Core()->m_Vel = ClampVel(pHit->m_MoveRestrictions, Temp);
-			}
-			else
-			{
-				pHit->Core()->m_Vel = StackedLaserShotgunBugSpeed;
-			}
-		}
-		else if(g_Config.m_SvOldLaser && pOwnerChar)
-		{
-			if(pOwnerChar->Core()->m_Pos != HitPos)
-			{
-				Temp = pHit->Core()->m_Vel + normalize(pOwnerChar->Core()->m_Pos - HitPos) * Strength;
-				pHit->Core()->m_Vel = ClampVel(pHit->m_MoveRestrictions, Temp);
-			}
-			else
-			{
-				pHit->Core()->m_Vel = StackedLaserShotgunBugSpeed;
-			}
-		}
-		else
-		{
-			pHit->Core()->m_Vel = ClampVel(pHit->m_MoveRestrictions, pHit->Core()->m_Vel);
-		}
+//		vec2 Temp;
+//
+//		float Strength;
+//		if(!m_TuneZone)
+//			Strength = GameServer()->Tuning()->m_ShotgunStrength;
+//		else
+//			Strength = GameServer()->TuningList()[m_TuneZone].m_ShotgunStrength;
+//
+//		vec2 &HitPos = pHit->Core()->m_Pos;
+//		if(!g_Config.m_SvOldLaser)
+//		{
+//			if(m_PrevPos != HitPos)
+//			{
+//				Temp = pHit->Core()->m_Vel + normalize(m_PrevPos - HitPos) * Strength;
+//				pHit->Core()->m_Vel = ClampVel(pHit->m_MoveRestrictions, Temp);
+//			}
+//			else
+//			{
+//				pHit->Core()->m_Vel = StackedLaserShotgunBugSpeed;
+//			}
+//		}
+//		else if(g_Config.m_SvOldLaser && pOwnerChar)
+//		{
+//			if(pOwnerChar->Core()->m_Pos != HitPos)
+//			{
+//				Temp = pHit->Core()->m_Vel + normalize(pOwnerChar->Core()->m_Pos - HitPos) * Strength;
+//				pHit->Core()->m_Vel = ClampVel(pHit->m_MoveRestrictions, Temp);
+//			}
+//			else
+//			{
+//				pHit->Core()->m_Vel = StackedLaserShotgunBugSpeed;
+//			}
+//		}
+//		else
+//		{
+//			pHit->Core()->m_Vel = ClampVel(pHit->m_MoveRestrictions, pHit->Core()->m_Vel);
+//		}
 	}
 	else if(m_Type == WEAPON_LASER)
 	{
 		pHit->UnFreeze();
+
+		if (pHit)
+			pHit->TakeDamage(vec2(0, 0), g_pData->m_Weapons.m_Laser.m_pBase->m_Damage, m_Owner, WEAPON_LASER);
+		if (pHitDummy)
+			pHitDummy->TakeDamage(vec2(0, 0), g_pData->m_Weapons.m_Laser.m_pBase->m_Damage, m_Owner, WEAPON_LASER);
 	}
 	return true;
 }

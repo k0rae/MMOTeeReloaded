@@ -32,7 +32,7 @@ void CSlimeController::Tick()
 		else
 			m_Dir = 1;
 
-		if (Server()->Tick() % 5 == 0 && distance(m_Pos, pChr->m_Pos) < 63.f)
+		if (Server()->Tick() % 15 == 0 && distance(m_Pos, pChr->m_Pos) < 63.f)
 			Fire();
 	}
 
@@ -43,5 +43,5 @@ void CSlimeController::Tick()
 		SetAim(RelPos);
 	}
 	else
-		SetAimX(m_Dir * 100);
+		SetAim(vec2(m_Dir * 100.f, 0.f));
 }

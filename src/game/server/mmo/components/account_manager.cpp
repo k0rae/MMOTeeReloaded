@@ -31,7 +31,7 @@ bool CAccountManager::RegisterThread(IDbConnection *pSqlServer, const ISqlData *
 		return false;
 	}
 
-	str_format(aBuf, sizeof(aBuf), "INSERT INTO users(name, password) VALUES(?, ?);");
+	str_copy(aBuf, "INSERT INTO users(name, password) VALUES(?, ?);");
 
 	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
 		return true;
@@ -135,6 +135,68 @@ void CAccountManager::Login(int ClientID, const char *pName, const char *pPasswo
 	str_copy(Request->m_aLogin, pName);
 	str_copy(Request->m_aPasswordHash, pPasswordHash);
 	DBPool()->Execute(LoginThread, std::move(Request), "Login");
+}
+
+bool CAccountManager::SaveThread(IDbConnection *pSqlServer, const ISqlData *pGameData, char *pError, int ErrorSize)
+{
+	const auto *pData = dynamic_cast<const SAccountSaveRequest *>(pGameData);
+
+	char aBuf[1024];
+	int NumInserted;
+
+	// Update 'users' table
+	str_copy(aBuf, "UPDATE users SET level = ?, exp = ?, money = ?, donate = ? WHERE id = ?");
+
+	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
+		return true;
+	pSqlServer->BindInt(1, pData->m_AccData.m_Level);
+	pSqlServer->BindInt(2, pData->m_AccData.m_EXP);
+	pSqlServer->BindInt(3, pData->m_AccData.m_Money);
+	pSqlServer->BindInt(4, pData->m_AccData.m_Donate);
+	pSqlServer->BindInt(5, pData->m_AccData.m_ID);
+
+	if(pSqlServer->ExecuteUpdate(&NumInserted, pError, ErrorSize))
+		return true;
+
+	// Clean old inventory
+	str_copy(aBuf, "DELETE FROM u_inv WHERE id = ?");
+
+	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
+		return true;
+	pSqlServer->BindInt(1, pData->m_AccData.m_ID);
+
+	if(pSqlServer->ExecuteUpdate(&NumInserted, pError, ErrorSize))
+		return true;
+
+	// Insert items
+	str_copy(aBuf, "INSERT INTO u_inv(id, item_id, count, quality, data) VALUES (?, ?, ?, ?, ?)");
+	for (SInvItem Item : pData->m_AccInventory.m_vItems)
+	{
+		if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
+			return true;
+		pSqlServer->BindInt(1, pData->m_AccData.m_ID);
+		pSqlServer->BindInt(2, Item.m_ID);
+		pSqlServer->BindInt(3, Item.m_Count);
+		pSqlServer->BindInt(4, Item.m_Quality);
+		pSqlServer->BindInt(5, Item.m_Data);
+
+		if(pSqlServer->ExecuteUpdate(&NumInserted, pError, ErrorSize))
+			return true;
+	}
+
+	return false;
+}
+
+void CAccountManager::Save(int ClientID)
+{
+	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+	if (!pPly)
+		return;
+
+	auto Request = std::make_unique<SAccountSaveRequest>();
+	Request->m_AccData = pPly->m_AccData;
+	Request->m_AccInventory = pPly->m_AccInv;
+	DBPool()->Execute(SaveThread, std::move(Request), "Save");
 }
 
 void CAccountManager::ChatRegister(IConsole::IResult *pResult, void *pUserData)
@@ -255,8 +317,8 @@ void CAccountManager::OnTick()
 		if (pResult->m_State == SAccountResultBase::STATE_SUCCESSFUL)
 		{
 			pPly->m_LoggedIn = true;
-			mem_copy(&pPly->m_AccData, &pResult->m_AccData, sizeof(pPly->m_AccData));
-			mem_copy(&pPly->m_AccInv, &pResult->m_AccInv, sizeof(pPly->m_AccInv));
+			pPly->m_AccData = pResult->m_AccData;
+			pPly->m_AccInv = pResult->m_AccInv;
 		}
 
 		m_vpLoginResults.erase(m_vpLoginResults.begin() + i);

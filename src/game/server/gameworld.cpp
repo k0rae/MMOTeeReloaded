@@ -10,6 +10,8 @@
 
 #include <engine/shared/config.h>
 
+#include <game/server/mmo/dummies/dummy_base.h>
+
 #include <algorithm>
 #include <utility>
 
@@ -468,4 +470,36 @@ void CGameWorld::ReleaseHooked(int ClientID)
 			pCore->m_HookState = HOOK_RETRACTED;
 		}
 	}
+}
+
+CDummyBase *CGameWorld::IntersectDummy(vec2 Pos0, vec2 Pos1, float Radius, vec2 &NewPos, const CCharacter *pNotThis)
+{
+	// Find other players
+	float ClosestLen = distance(Pos0, Pos1) * 100.0f;
+	CDummyBase *pClosest = 0x0;
+
+	CDummyBase *p = (CDummyBase *)FindFirst(ENTTYPE_DUMMY);
+	for(; p; p = (CDummyBase *)p->TypeNext())
+	{
+		if (!p->IsAlive())
+			continue;
+
+		vec2 IntersectPos;
+		if(closest_point_on_line(Pos0, Pos1, p->m_Pos, IntersectPos))
+		{
+			float Len = distance(p->m_Pos, IntersectPos);
+			if(Len < p->m_ProximityRadius + Radius)
+			{
+				Len = distance(Pos0, IntersectPos);
+				if(Len < ClosestLen)
+				{
+					NewPos = IntersectPos;
+					ClosestLen = Len;
+					pClosest = p;
+				}
+			}
+		}
+	}
+
+	return pClosest;
 }

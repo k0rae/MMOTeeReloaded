@@ -44,9 +44,10 @@ public:
 	~CDummyBase();
 
 	void Spawn();
-	void Die();
+	void Die(int Killer);
 	void TakeDamage(vec2 Force, int Damage, int From, int Weapon);
 	void FireWeapon();
+	void HandleTiles(int Tile);
 
 	virtual void Destroy() override;
 	virtual void Tick() override;
@@ -61,6 +62,7 @@ public:
 	bool IsAlive() { return m_Alive; }
 	int GetDummyType() { return m_DummyType; }
 	CCharacterCore *Core() { return &m_Core; }
+	bool IsNoDamage() { return m_NoDamage; }
 };
 
 #endif // GAME_SERVER_ENTITIES_DUMMIES_DUMMY_BASE_H

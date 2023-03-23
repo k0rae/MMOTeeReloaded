@@ -1,16 +1,20 @@
 #include "dummy_base.h"
 
 #include <game/server/gamecontext.h>
-
+#include <game/server/player.h>
 #include <game/server/entities/character.h>
 #include <game/server/entities/laser.h>
 #include <game/server/entities/projectile.h>
+
+#include <game/server/mmo/entities/pickup_phys.h>
+
+#include <game/mapitems.h>
 
 // Mobs
 #include "mobs/slime.h"
 
 CDummyBase::CDummyBase(CGameWorld *pWorld, vec2 Pos, int DummyType) :
-	CEntity(pWorld, CGameWorld::ENTTYPE_DUMMY, Pos)
+	CEntity(pWorld, CGameWorld::ENTTYPE_DUMMY, Pos, 28.f)
 {
 	GameWorld()->InsertEntity(this);
 	GameWorld()->m_Core.m_vDummies.push_back(&m_Core);
@@ -70,10 +74,22 @@ void CDummyBase::Spawn()
 	GameServer()->CreatePlayerSpawn(m_Pos);
 }
 
-void CDummyBase::Die()
+void CDummyBase::Die(int Killer)
 {
 	m_Alive = false;
 	m_SpawnTick = Server()->Tick() + Server()->TickSpeed();
+
+	if (Killer >= 0 && rand() % 3 == 0)
+	{
+		int Level = 1;
+
+		CPlayer *pPly = GameServer()->m_apPlayers[Killer];
+		if (pPly && pPly->m_LoggedIn)
+			Level = pPly->m_AccData.m_Level;
+
+		int RandomForce = 3 - rand() % 7;
+		new CPickupPhys(GameWorld(), m_Pos, m_Core.m_Vel + vec2(RandomForce, RandomForce), PICKUP_PHYS_TYPE_XP, 25 * Level);
+	}
 
 	GameServer()->CreateDeath(m_Pos, 0);
 	GameServer()->CreateSound(m_Pos, SOUND_PLAYER_DIE);
@@ -81,7 +97,10 @@ void CDummyBase::Die()
 
 void CDummyBase::TakeDamage(vec2 Force, int Damage, int From, int Weapon)
 {
-	if(Damage)
+	if (!m_Alive)
+		return;
+
+	if (Damage)
 	{
 		// Emote
 		m_EmoteType = EMOTE_PAIN;
@@ -114,22 +133,7 @@ void CDummyBase::TakeDamage(vec2 Force, int Damage, int From, int Weapon)
 	}
 
 	if (m_Health <= 0)
-	{
-		Die();
-
-		if (From >= 0)
-		{
-			CPlayer *pFrom = GameServer()->m_apPlayers[From];
-			CCharacter *pFromChar = 0x0;
-			if (pFrom && pFrom->m_LoggedIn)
-			{
-				pFromChar = pFrom->GetCharacter();
-
-				// Add EXP for killing
-				pFrom->AddEXP(m_pPlayer->m_AccData.m_Level * 2);
-			}
-		}
-	}
+		Die(From);
 
 	vec2 Temp = m_Core.m_Vel + Force;
 	m_Core.m_Vel = Temp;
@@ -263,6 +267,12 @@ void CDummyBase::FireWeapon()
 	}
 }
 
+void CDummyBase::HandleTiles(int Tile)
+{
+	if (Tile == TILE_OFF_DAMAGE)
+		Die(-1);
+}
+
 void CDummyBase::Destroy()
 {
 	for (int i = 0; i < GameWorld()->m_Core.m_vDummies.size(); i++)
@@ -293,6 +303,9 @@ void CDummyBase::Tick()
 	m_Pos = m_Core.m_Pos;
 
 	FireWeapon();
+
+	int Tile = Collision()->GetTile(m_Pos.x, m_Pos.y);
+	HandleTiles(Tile);
 
 	m_PrevInput = m_Input;
 }

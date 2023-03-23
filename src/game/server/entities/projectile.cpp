@@ -118,10 +118,13 @@ void CProjectile::Tick()
 	if(m_Owner >= 0)
 		pOwnerChar = GameServer()->GetPlayerChar(m_Owner);
 
-	CCharacter *pTargetChr = 0;
+	CCharacter *pTargetChr = 0x0;
+	CDummyBase *pTargetDummy = 0x0;
 
 	if(pOwnerChar ? !pOwnerChar->GrenadeHitDisabled() : g_Config.m_SvHit)
 		pTargetChr = GameServer()->m_World.IntersectCharacter(PrevPos, ColPos, m_Freeze ? 1.0f : 6.0f, ColPos, pOwnerChar, m_Owner);
+	if(!pTargetChr)
+		pTargetDummy = GameWorld()->IntersectDummy(PrevPos, ColPos, 6.f, ColPos);
 
 	if(m_LifeSpan > -1)
 		m_LifeSpan--;
@@ -147,9 +150,10 @@ void CProjectile::Tick()
 		return;
 	}
 
-	if(((pTargetChr && (pOwnerChar ? !pOwnerChar->GrenadeHitDisabled() : g_Config.m_SvHit || m_Owner == -1 || pTargetChr == pOwnerChar)) || Collide || GameLayerClipped(CurPos)) && !IsWeaponCollide)
+	if(((pTargetChr && (pOwnerChar ? !pOwnerChar->GrenadeHitDisabled() : g_Config.m_SvHit || m_Owner == -1)) || Collide || GameLayerClipped(CurPos) || pTargetDummy) && !IsWeaponCollide)
 	{
-		if(m_Explosive /*??*/ && (!pTargetChr || (pTargetChr && (!m_Freeze || (m_Type == WEAPON_SHOTGUN && Collide)))))
+		// && (!pTargetChr || (m_Type == WEAPON_SHOTGUN && Collide))
+		if(m_Explosive)
 		{
 			int Number = 1;
 			if(GameServer()->EmulateBug(BUG_GRENADE_DOUBLEEXPLOSION) && m_LifeSpan == -1)
@@ -162,17 +166,6 @@ void CProjectile::Tick()
 					(m_Owner != -1) ? TeamMask : CClientMask().set());
 				GameServer()->CreateSound(ColPos, m_SoundImpact,
 					(m_Owner != -1) ? TeamMask : CClientMask().set());
-			}
-		}
-		else if(m_Freeze)
-		{
-			CEntity *apEnts[MAX_CLIENTS];
-			int Num = GameWorld()->FindEntities(CurPos, 1.0f, apEnts, MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
-			for(int i = 0; i < Num; ++i)
-			{
-				auto *pChr = static_cast<CCharacter *>(apEnts[i]);
-				if(pChr && (m_Layer != LAYER_SWITCH || (m_Layer == LAYER_SWITCH && m_Number > 0 && Switchers()[m_Number].m_aStatus[pChr->Team()])))
-					pChr->Freeze();
 			}
 		}
 

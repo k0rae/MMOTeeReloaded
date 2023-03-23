@@ -371,6 +371,9 @@ void CCharacter::HandleWeaponSwitch()
 
 void CCharacter::FireWeapon()
 {
+	if (m_ReloadTimer)
+		return;
+
 	DoWeaponSwitch();
 	vec2 Direction = normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY));
 
@@ -985,6 +988,19 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	if (m_Health <= 0)
 	{
 		Die((From >= 0) ? From : m_pPlayer->GetCID(), Weapon);
+
+		if (From >= 0)
+		{
+			CPlayer *pFrom = GameServer()->m_apPlayers[From];
+			CCharacter *pFromChar = 0x0;
+			if (pFrom && pFrom->m_LoggedIn)
+			{
+				pFromChar = pFrom->GetCharacter();
+
+				// Add EXP for killing
+				pFrom->AddEXP(m_pPlayer->m_AccData.m_Level * 2);
+			}
+		}
 	}
 
 	vec2 Temp = m_Core.m_Vel + Force;
