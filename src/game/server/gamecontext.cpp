@@ -935,7 +935,7 @@ void CGameContext::OnTick()
 						       "\n\n%s" // Important text
 						       ),
 			AccData.m_Level, AccData.m_EXP, ExpForLevel, // Main stat
-			aExpProgress, (int)(AccData.m_EXP / ExpForLevel * 100), // Exp progress bar
+			aExpProgress, (int)((float)AccData.m_EXP / (float)ExpForLevel * 100), // Exp progress bar
 			aManaProgress, 0, 0, // Mana
 			aHealthProgress, Health, 10, // Health
 			aArmorProgress, Armor, 10, // Armor

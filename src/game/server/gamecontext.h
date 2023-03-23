@@ -487,10 +487,10 @@ public:
 	CAccountManager m_AccountManager;
 
 	int GetNextBotSnapID(int ClientID);
-
 	void CreateDummy(vec2 Pos, int DummyType);
 
 	void SendMMOBroadcast(int ClientID, float Seconds, const char *pText);
+	int GetExpForLevelUp(int Level);
 
 private:
 	int m_aBotSnapIDs[MAX_CLIENTS];
@@ -503,7 +503,6 @@ private:
 		int m_EndTick;
 	} m_aClientsBroadcast[MAX_CLIENTS];
 
-	int GetExpForLevelUp(int Level);
 	void GetProgressBar(char *pStr, int StrSize, char Filler, char Empty, int Num, int MaxNum);
 
 	static void ConCreateDummy(IConsole::IResult *pResult, void *pUserData);

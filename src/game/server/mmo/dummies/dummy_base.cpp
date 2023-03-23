@@ -114,7 +114,22 @@ void CDummyBase::TakeDamage(vec2 Force, int Damage, int From, int Weapon)
 	}
 
 	if (m_Health <= 0)
+	{
 		Die();
+
+		if (From >= 0)
+		{
+			CPlayer *pFrom = GameServer()->m_apPlayers[From];
+			CCharacter *pFromChar = 0x0;
+			if (pFrom && pFrom->m_LoggedIn)
+			{
+				pFromChar = pFrom->GetCharacter();
+
+				// Add EXP for killing
+				pFrom->AddEXP(m_pPlayer->m_AccData.m_Level * 2);
+			}
+		}
+	}
 
 	vec2 Temp = m_Core.m_Vel + Force;
 	m_Core.m_Vel = Temp;
@@ -262,9 +277,7 @@ void CDummyBase::Tick()
 	m_Core.m_Alive = m_Alive;
 
 	if (Server()->Tick() > m_SpawnTick && !m_Alive)
-	{
 		Spawn();
-	}
 
 	// Don't calc phys if dummy is dead
 	if (!m_Alive)

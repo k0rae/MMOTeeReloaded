@@ -972,9 +972,6 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 
 		m_Health -= Dmg;
 
-		if (m_Health <= 0)
-			Die((From >= 0) ? From : m_pPlayer->GetCID(), Weapon);
-
 		// do damage Hit sound
 		if(From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])
 		{
@@ -983,6 +980,11 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 			//int Steal = (100 - Server()->GetItemCount(From, ACCESSORY_ADD_STEAL_HP) > 30) ? 100 - Server()->GetItemCount(From, ACCESSORY_ADD_STEAL_HP) > 30 : 30;
 			//pFrom->m_Health += Steal;
 		}
+	}
+
+	if (m_Health <= 0)
+	{
+		Die((From >= 0) ? From : m_pPlayer->GetCID(), Weapon);
 	}
 
 	vec2 Temp = m_Core.m_Vel + Force;
@@ -1927,13 +1929,22 @@ void CCharacter::HandleMMOTiles(int Tile)
 	if (Tile == TILE_OFF_DAMAGE && !m_NoDamage)
 	{
 		m_NoDamage = true;
-
 		GameServer()->SendMMOBroadcast(ClientID, 1.f, "YOU ENTERED NO DAMAGE ZONE");
 	}
-	if (Tile == TILE_ON_DAMAGE && m_NoDamage)
+	else if (Tile == TILE_ON_DAMAGE && m_NoDamage)
 	{
 		m_NoDamage = false;
-
 		GameServer()->SendMMOBroadcast(ClientID, 1.f, "YOU EXIT NO DAMAGE ZONE");
+	}
+
+	else if (Tile == TILE_CHAIR_10 && Server()->Tick() % Server()->TickSpeed() == 0)
+	{
+		m_pPlayer->AddEXP(10);
+		GameServer()->SendMMOBroadcast(ClientID, 1.f, "+10 EXP FROM CHAIR");
+	}
+	else if (Tile == TILE_CHAIR_15 && Server()->Tick() % Server()->TickSpeed() == 0)
+	{
+		m_pPlayer->AddEXP(15);
+		GameServer()->SendMMOBroadcast(ClientID, 1.f, "+15 EXP FROM CHAIR");
 	}
 }
