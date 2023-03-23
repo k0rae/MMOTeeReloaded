@@ -50,6 +50,8 @@ enum
 	BOT_IDS_OFFSET = 24
 };
 
+#define BC_LEFT(Text) Text "                                                                                                                                                      "
+
 class CCharacter;
 class CConfig;
 class CHeap;
@@ -488,11 +490,21 @@ public:
 
 	void CreateDummy(vec2 Pos, int DummyType);
 
+	void SendMMOBroadcast(int ClientID, float Seconds, const char *pText);
+
 private:
 	int m_aBotSnapIDs[MAX_CLIENTS];
 	void ClearBotSnapIDs();
 
 	void CreateEntitiesMMO();
+
+	struct {
+		char m_aText[256];
+		int m_EndTick;
+	} m_aClientsBroadcast[MAX_CLIENTS];
+
+	int GetExpForLevelUp(int Level);
+	void GetProgressBar(char *pStr, int StrSize, char Filler, char Empty, int Num, int MaxNum);
 
 	static void ConCreateDummy(IConsole::IResult *pResult, void *pUserData);
 };

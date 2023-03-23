@@ -191,78 +191,10 @@ bool IGameController::OnEntity(int Index, int x, int y, int Layer, int Flags, bo
 	aSides[6] = GameServer()->Collision()->Entity(x - 1, y, Layer);
 	aSides[7] = GameServer()->Collision()->Entity(x - 1, y + 1, Layer);
 
-	if(Index >= ENTITY_SPAWN && Index <= ENTITY_SPAWN_BLUE && Initial)
+	if(Index == ENTITY_SPAWN && Initial)
 	{
 		const int Type = Index - ENTITY_SPAWN;
 		m_avSpawnPoints[Type].push_back(Pos);
-	}
-	else if(Index == ENTITY_DOOR)
-	{
-		for(int i = 0; i < 8; i++)
-		{
-			if(aSides[i] >= ENTITY_LASER_SHORT && aSides[i] <= ENTITY_LASER_LONG)
-			{
-				new CDoor(
-					&GameServer()->m_World, //GameWorld
-					Pos, //Pos
-					pi / 4 * i, //Rotation
-					32 * 3 + 32 * (aSides[i] - ENTITY_LASER_SHORT) * 3, //Length
-					Number //Number
-				);
-			}
-		}
-	}
-	else if(Index == ENTITY_CRAZY_SHOTGUN_EX)
-	{
-		int Dir;
-		if(!Flags)
-			Dir = 0;
-		else if(Flags == ROTATION_90)
-			Dir = 1;
-		else if(Flags == ROTATION_180)
-			Dir = 2;
-		else
-			Dir = 3;
-		float Deg = Dir * (pi / 2);
-		CProjectile *pBullet = new CProjectile(
-			&GameServer()->m_World,
-			WEAPON_SHOTGUN, //Type
-			-1, //Owner
-			Pos, //Pos
-			vec2(sin(Deg), cos(Deg)), //Dir
-			-2, //Span
-			true, //Freeze
-			true, //Explosive
-			(g_Config.m_SvShotgunBulletSound) ? SOUND_GRENADE_EXPLODE : -1, //SoundImpact
-			Layer,
-			Number);
-		pBullet->SetBouncing(2 - (Dir % 2));
-	}
-	else if(Index == ENTITY_CRAZY_SHOTGUN)
-	{
-		int Dir;
-		if(!Flags)
-			Dir = 0;
-		else if(Flags == (TILEFLAG_ROTATE))
-			Dir = 1;
-		else if(Flags == (TILEFLAG_XFLIP | TILEFLAG_YFLIP))
-			Dir = 2;
-		else
-			Dir = 3;
-		float Deg = Dir * (pi / 2);
-		CProjectile *pBullet = new CProjectile(
-			&GameServer()->m_World,
-			WEAPON_SHOTGUN, //Type
-			-1, //Owner
-			Pos, //Pos
-			vec2(sin(Deg), cos(Deg)), //Dir
-			-2, //Span
-			true, //Freeze
-			false, //Explosive
-			SOUND_GRENADE_EXPLODE,
-			Layer,
-			Number);
-		pBullet->SetBouncing(2 - (Dir % 2));
 	}
 
 	int Type = -1;
@@ -270,116 +202,8 @@ bool IGameController::OnEntity(int Index, int x, int y, int Layer, int Flags, bo
 
 	if(Index == ENTITY_ARMOR_1)
 		Type = POWERUP_ARMOR;
-	else if(Index == ENTITY_ARMOR_SHOTGUN)
-		Type = POWERUP_ARMOR_SHOTGUN;
-	else if(Index == ENTITY_ARMOR_GRENADE)
-		Type = POWERUP_ARMOR_GRENADE;
-	else if(Index == ENTITY_ARMOR_NINJA)
-		Type = POWERUP_ARMOR_NINJA;
-	else if(Index == ENTITY_ARMOR_LASER)
-		Type = POWERUP_ARMOR_LASER;
 	else if(Index == ENTITY_HEALTH_1)
 		Type = POWERUP_HEALTH;
-	else if(Index == ENTITY_WEAPON_SHOTGUN)
-	{
-		Type = POWERUP_WEAPON;
-		SubType = WEAPON_SHOTGUN;
-	}
-	else if(Index == ENTITY_WEAPON_GRENADE)
-	{
-		Type = POWERUP_WEAPON;
-		SubType = WEAPON_GRENADE;
-	}
-	else if(Index == ENTITY_WEAPON_LASER)
-	{
-		Type = POWERUP_WEAPON;
-		SubType = WEAPON_LASER;
-	}
-	else if(Index == ENTITY_POWERUP_NINJA)
-	{
-		Type = POWERUP_NINJA;
-		SubType = WEAPON_NINJA;
-	}
-	else if(Index >= ENTITY_LASER_FAST_CCW && Index <= ENTITY_LASER_FAST_CW)
-	{
-		int aSides2[8];
-		aSides2[0] = GameServer()->Collision()->Entity(x, y + 2, Layer);
-		aSides2[1] = GameServer()->Collision()->Entity(x + 2, y + 2, Layer);
-		aSides2[2] = GameServer()->Collision()->Entity(x + 2, y, Layer);
-		aSides2[3] = GameServer()->Collision()->Entity(x + 2, y - 2, Layer);
-		aSides2[4] = GameServer()->Collision()->Entity(x, y - 2, Layer);
-		aSides2[5] = GameServer()->Collision()->Entity(x - 2, y - 2, Layer);
-		aSides2[6] = GameServer()->Collision()->Entity(x - 2, y, Layer);
-		aSides2[7] = GameServer()->Collision()->Entity(x - 2, y + 2, Layer);
-
-		int Ind = Index - ENTITY_LASER_STOP;
-		int M;
-		if(Ind < 0)
-		{
-			Ind = -Ind;
-			M = 1;
-		}
-		else if(Ind == 0)
-			M = 0;
-		else
-			M = -1;
-
-		float AngularSpeed = 0.0f;
-		if(Ind == 0)
-			AngularSpeed = 0.0f;
-		else if(Ind == 1)
-			AngularSpeed = pi / 360;
-		else if(Ind == 2)
-			AngularSpeed = pi / 180;
-		else if(Ind == 3)
-			AngularSpeed = pi / 90;
-		AngularSpeed *= M;
-
-		for(int i = 0; i < 8; i++)
-		{
-			if(aSides[i] >= ENTITY_LASER_SHORT && aSides[i] <= ENTITY_LASER_LONG)
-			{
-				CLight *pLight = new CLight(&GameServer()->m_World, Pos, pi / 4 * i, 32 * 3 + 32 * (aSides[i] - ENTITY_LASER_SHORT) * 3, Layer, Number);
-				pLight->m_AngularSpeed = AngularSpeed;
-				if(aSides2[i] >= ENTITY_LASER_C_SLOW && aSides2[i] <= ENTITY_LASER_C_FAST)
-				{
-					pLight->m_Speed = 1 + (aSides2[i] - ENTITY_LASER_C_SLOW) * 2;
-					pLight->m_CurveLength = pLight->m_Length;
-				}
-				else if(aSides2[i] >= ENTITY_LASER_O_SLOW && aSides2[i] <= ENTITY_LASER_O_FAST)
-				{
-					pLight->m_Speed = 1 + (aSides2[i] - ENTITY_LASER_O_SLOW) * 2;
-					pLight->m_CurveLength = 0;
-				}
-				else
-					pLight->m_CurveLength = pLight->m_Length;
-			}
-		}
-	}
-	else if(Index >= ENTITY_DRAGGER_WEAK && Index <= ENTITY_DRAGGER_STRONG)
-	{
-		new CDragger(&GameServer()->m_World, Pos, Index - ENTITY_DRAGGER_WEAK + 1, false, Layer, Number);
-	}
-	else if(Index >= ENTITY_DRAGGER_WEAK_NW && Index <= ENTITY_DRAGGER_STRONG_NW)
-	{
-		new CDragger(&GameServer()->m_World, Pos, Index - ENTITY_DRAGGER_WEAK_NW + 1, true, Layer, Number);
-	}
-	else if(Index == ENTITY_PLASMAE)
-	{
-		new CGun(&GameServer()->m_World, Pos, false, true, Layer, Number);
-	}
-	else if(Index == ENTITY_PLASMAF)
-	{
-		new CGun(&GameServer()->m_World, Pos, true, false, Layer, Number);
-	}
-	else if(Index == ENTITY_PLASMA)
-	{
-		new CGun(&GameServer()->m_World, Pos, true, true, Layer, Number);
-	}
-	else if(Index == ENTITY_PLASMAU)
-	{
-		new CGun(&GameServer()->m_World, Pos, false, false, Layer, Number);
-	}
 
 	if(Type != -1)
 	{

@@ -287,8 +287,6 @@ void CCharacterCore::Tick(bool UseInput, bool DoDeferredTick)
 		{
 			if(Hit == TILE_NOHOOK)
 				GoingToRetract = true;
-			else if(Hit == TILE_TELEINHOOK)
-				GoingThroughTele = true;
 			else
 				GoingToHitGround = true;
 			m_Reset = true;

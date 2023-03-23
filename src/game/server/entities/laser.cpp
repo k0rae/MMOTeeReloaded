@@ -166,18 +166,8 @@ void CLaser::DoBounce()
 			}
 			m_ZeroEnergyBounceInLastTick = Distance == 0.0f;
 
-			CGameControllerDDRace *pControllerDDRace = (CGameControllerDDRace *)GameServer()->m_pController;
-			if(Res == TILE_TELEINWEAPON && !pControllerDDRace->m_TeleOuts[z - 1].empty())
-			{
-				int TeleOut = GameServer()->m_World.m_Core.RandomOr0(pControllerDDRace->m_TeleOuts[z - 1].size());
-				m_TelePos = pControllerDDRace->m_TeleOuts[z - 1][TeleOut];
-				m_WasTele = true;
-			}
-			else
-			{
-				m_Bounces++;
-				m_WasTele = false;
-			}
+			m_Bounces++;
+			m_WasTele = false;
 
 			int BounceNum = GameServer()->Tuning()->m_LaserBounceNum;
 			if(m_TuneZone)
@@ -225,36 +215,6 @@ void CLaser::DoBounce()
 			pOwnerChar->m_TeleGunPos = PossiblePos;
 			pOwnerChar->m_TeleGunTeleport = true;
 			pOwnerChar->m_IsBlueTeleGunTeleport = m_IsBlueTeleport;
-		}
-	}
-	else if(m_Owner >= 0)
-	{
-		int MapIndex = GameServer()->Collision()->GetPureMapIndex(Coltile);
-		int TileFIndex = GameServer()->Collision()->GetFTileIndex(MapIndex);
-		bool IsSwitchTeleGun = GameServer()->Collision()->GetSwitchType(MapIndex) == TILE_ALLOW_TELE_GUN;
-		bool IsBlueSwitchTeleGun = GameServer()->Collision()->GetSwitchType(MapIndex) == TILE_ALLOW_BLUE_TELE_GUN;
-		int IsTeleInWeapon = GameServer()->Collision()->IsTeleportWeapon(MapIndex);
-
-		if(!IsTeleInWeapon)
-		{
-			if(IsSwitchTeleGun || IsBlueSwitchTeleGun)
-			{
-				// Delay specifies which weapon the tile should work for.
-				// Delay = 0 means all.
-				int delay = GameServer()->Collision()->GetSwitchDelay(MapIndex);
-
-				if((delay != 3 && delay != 0) && m_Type == WEAPON_LASER)
-				{
-					IsSwitchTeleGun = IsBlueSwitchTeleGun = false;
-				}
-			}
-
-			m_IsBlueTeleport = TileFIndex == TILE_ALLOW_BLUE_TELE_GUN || IsBlueSwitchTeleGun;
-
-			// Teleport is canceled if the last bounce tile is not a TILE_ALLOW_TELE_GUN.
-			// Teleport also works if laser didn't bounce.
-			m_TeleportCancelled =
-				m_Type == WEAPON_LASER && (TileFIndex != TILE_ALLOW_TELE_GUN && TileFIndex != TILE_ALLOW_BLUE_TELE_GUN && !IsSwitchTeleGun && !IsBlueSwitchTeleGun);
 		}
 	}
 

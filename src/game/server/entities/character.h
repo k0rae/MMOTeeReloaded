@@ -217,6 +217,8 @@ public:
 	void SetLastAction(int LastAction) { m_LastAction = LastAction; }
 	int GetArmor() { return m_Armor; }
 	void SetArmor(int Armor) { m_Armor = Armor; }
+	int GetHealth() { return m_Health; }
+	void SetHealth(int Health) { m_Health = Health; }
 	CCharacterCore GetCore() { return m_Core; }
 	void SetCore(CCharacterCore Core) { m_Core = Core; }
 	CCharacterCore *Core() { return &m_Core; }
@@ -240,6 +242,15 @@ public:
 	bool GrenadeHitDisabled() { return m_Core.m_GrenadeHitDisabled; }
 
 	bool IsSuper() { return m_Core.m_Super; }
+
+	// MMOTee stuff
+	bool IsNoDamage() const { return m_NoDamage; }
+	void SetNoDamage(bool State) { m_NoDamage = State; }
+
+private:
+	bool m_NoDamage;
+
+	void HandleMMOTiles(int Tile);
 };
 
 enum

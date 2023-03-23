@@ -888,16 +888,60 @@ void CGameContext::OnTick()
 	for(auto &pComponent : m_vpComponents)
 		pComponent->OnTick();
 
-	for(int i = 0; i < MAX_CLIENTS; i++)
+	char aBroadcast[512];
+	char aExpProgress[10 + 1]; // +1 - is null termination
+	char aManaProgress[10 + 1];
+	char aHealthProgress[10 + 1];
+	char aArmorProgress[10 + 1];
+	for(int i = 0; i < MAX_PLAYERS; i++)
 	{
-		if(m_apPlayers[i])
-		{
-			// send vote options
-			ProgressVoteOptions(i);
+		CPlayer *pPly = m_apPlayers[i];
+		if (!pPly)
+			continue;
 
-			m_apPlayers[i]->Tick();
-			m_apPlayers[i]->PostTick();
-		}
+		// send vote options
+		ProgressVoteOptions(i);
+
+		m_apPlayers[i]->Tick();
+		m_apPlayers[i]->PostTick();
+
+		// Send broadcasts
+		if (!pPly->m_LoggedIn)
+			continue;
+		CCharacter *pChr = pPly->GetCharacter();
+		if (!pChr)
+			continue;
+
+		SAccountData &AccData = pPly->m_AccData;
+
+		int ExpForLevel = GetExpForLevelUp(AccData.m_Level);
+		int Health = pChr->GetHealth();
+		int Armor = pChr->GetArmor();
+
+		GetProgressBar(aExpProgress, sizeof(aExpProgress), ':', ' ', AccData.m_EXP, ExpForLevel);
+		GetProgressBar(aManaProgress, sizeof(aManaProgress), ':', ' ', 0, 1);
+		GetProgressBar(aHealthProgress, sizeof(aHealthProgress), ':', ' ', Health, 10);
+		GetProgressBar(aArmorProgress, sizeof(aArmorProgress), ':', ' ', Armor, 10);
+
+		str_format(aBroadcast, sizeof(aBroadcast), BC_LEFT(
+						       "\n\n\n\n"
+						       "Lv: %d | Exp: %d/%d\n" // Main stat
+						       "-------------------\n"
+						       "[%s] %d%%\n" // Exp progress bar
+						       "[%s] %d/%d\n" // Mana
+						       "-------------------\n"
+						       "[%s] %d/%d\n" // Health
+						       "[%s] %d/%d\n" // Armor
+						       "\n\n%s" // Important text
+						       ),
+			AccData.m_Level, AccData.m_EXP, ExpForLevel, // Main stat
+			aExpProgress, (int)(AccData.m_EXP / ExpForLevel * 100), // Exp progress bar
+			aManaProgress, 0, 0, // Mana
+			aHealthProgress, Health, 10, // Health
+			aArmorProgress, Armor, 10, // Armor
+			(m_aClientsBroadcast[i].m_EndTick > Server()->Tick()) ? m_aClientsBroadcast[i].m_aText : "");
+
+		SendBroadcast(aBroadcast, i);
 	}
 
 	for(auto &pPlayer : m_apPlayers)
@@ -1103,25 +1147,6 @@ void CGameContext::OnTick()
 		const char *pLine = Server()->GetAnnouncementLine(g_Config.m_SvAnnouncementFileName);
 		if(pLine)
 			SendChat(-1, CGameContext::CHAT_ALL, pLine);
-	}
-
-	for(auto &Switcher : Switchers())
-	{
-		for(int j = 0; j < MAX_CLIENTS; ++j)
-		{
-			if(Switcher.m_aEndTick[j] <= Server()->Tick() && Switcher.m_aType[j] == TILE_SWITCHTIMEDOPEN)
-			{
-				Switcher.m_aStatus[j] = false;
-				Switcher.m_aEndTick[j] = 0;
-				Switcher.m_aType[j] = TILE_SWITCHCLOSE;
-			}
-			else if(Switcher.m_aEndTick[j] <= Server()->Tick() && Switcher.m_aType[j] == TILE_SWITCHTIMEDCLOSE)
-			{
-				Switcher.m_aStatus[j] = true;
-				Switcher.m_aEndTick[j] = 0;
-				Switcher.m_aType[j] = TILE_SWITCHOPEN;
-			}
-		}
 	}
 
 #ifdef CONF_DEBUG
@@ -3434,32 +3459,7 @@ void CGameContext::CreateAllEntities(bool Initial)
 			// Game layer
 			{
 				const int GameIndex = pTiles[Index].m_Index;
-				if(GameIndex == TILE_OLDLASER)
-				{
-					g_Config.m_SvOldLaser = 1;
-					dbg_msg("game_layer", "found old laser tile");
-				}
-				else if(GameIndex == TILE_NPC)
-				{
-					m_Tuning.Set("player_collision", 0);
-					dbg_msg("game_layer", "found no collision tile");
-				}
-				else if(GameIndex == TILE_EHOOK)
-				{
-					g_Config.m_SvEndlessDrag = 1;
-					dbg_msg("game_layer", "found unlimited hook time tile");
-				}
-				else if(GameIndex == TILE_NOHIT)
-				{
-					g_Config.m_SvHit = 0;
-					dbg_msg("game_layer", "found no weapons hitting others tile");
-				}
-				else if(GameIndex == TILE_NPH)
-				{
-					m_Tuning.Set("player_hooking", 0);
-					dbg_msg("game_layer", "found no player hooking tile");
-				}
-				else if(GameIndex >= ENTITY_OFFSET)
+				if(GameIndex >= ENTITY_OFFSET)
 				{
 					m_pController->OnEntity(GameIndex - ENTITY_OFFSET, x, y, LAYER_GAME, pTiles[Index].m_Flags, Initial);
 				}
@@ -3468,32 +3468,7 @@ void CGameContext::CreateAllEntities(bool Initial)
 			if(pFront)
 			{
 				const int FrontIndex = pFront[Index].m_Index;
-				if(FrontIndex == TILE_OLDLASER)
-				{
-					g_Config.m_SvOldLaser = 1;
-					dbg_msg("front_layer", "found old laser tile");
-				}
-				else if(FrontIndex == TILE_NPC)
-				{
-					m_Tuning.Set("player_collision", 0);
-					dbg_msg("front_layer", "found no collision tile");
-				}
-				else if(FrontIndex == TILE_EHOOK)
-				{
-					g_Config.m_SvEndlessDrag = 1;
-					dbg_msg("front_layer", "found unlimited hook time tile");
-				}
-				else if(FrontIndex == TILE_NOHIT)
-				{
-					g_Config.m_SvHit = 0;
-					dbg_msg("front_layer", "found no weapons hitting others tile");
-				}
-				else if(FrontIndex == TILE_NPH)
-				{
-					m_Tuning.Set("player_hooking", 0);
-					dbg_msg("front_layer", "found no player hooking tile");
-				}
-				else if(FrontIndex >= ENTITY_OFFSET)
+				if(FrontIndex >= ENTITY_OFFSET)
 				{
 					m_pController->OnEntity(FrontIndex - ENTITY_OFFSET, x, y, LAYER_FRONT, pFront[Index].m_Flags, Initial);
 				}
@@ -3687,7 +3662,7 @@ void CGameContext::LoadMapSettings()
 
 		if(ItemSize < (int)sizeof(CMapItemInfoSettings))
 			break;
-		if(!(pItem->m_Settings > -1))
+		if(pItem->m_Settings <= -1)
 			break;
 
 		int Size = pMap->GetDataSize(pItem->m_Settings);
@@ -4381,4 +4356,40 @@ void CGameContext::CreateEntitiesMMO()
 			}
 		}
 	}
+}
+
+void CGameContext::SendMMOBroadcast(int ClientID, float Seconds, const char *pText)
+{
+	m_aClientsBroadcast[ClientID].m_EndTick = Server()->Tick() + (int)(Server()->TickSpeed() * Seconds);
+	str_copy(m_aClientsBroadcast[ClientID].m_aText, pText);
+}
+
+int CGameContext::GetExpForLevelUp(int Level)
+{
+	int Exp = 250;
+
+	if(Level > 100) Exp = 700;
+	if(Level > 200) Exp = 1000;
+	if(Level > 300) Exp = 1500;
+	if(Level > 400) Exp = 2500;
+	if(Level > 500) Exp = 4000;
+	if(Level > 600) Exp = 6000;
+	if(Level > 700) Exp = 8000;
+	if(Level > 1000) Exp = 12000;
+	if(Level > 1100) Exp = 13000;
+	if(Level > 1200) Exp = 14000;
+
+	return Level * Exp;
+}
+
+void CGameContext::GetProgressBar(char *pStr, int StrSize, char Filler, char Empty, int Num, int MaxNum)
+{
+	int c = StrSize - 1;
+	float a = (float)Num / (float)MaxNum;
+	int b = (float)c * a;
+
+	pStr[StrSize - 1] = '\0';
+
+	for (int i = 0; i < c; i++)
+		pStr[i] = ((i + 1 <= b) ? Filler : Empty);
 }

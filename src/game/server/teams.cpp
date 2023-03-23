@@ -57,12 +57,7 @@ void CGameTeams::ResetRoundState(int Team)
 
 void CGameTeams::ResetSwitchers(int Team)
 {
-	for(auto &Switcher : GameServer()->Switchers())
-	{
-		Switcher.m_aStatus[Team] = Switcher.m_Initial;
-		Switcher.m_aEndTick[Team] = 0;
-		Switcher.m_aType[Team] = TILE_SWITCHOPEN;
-	}
+	// Nothing here :P
 }
 
 void CGameTeams::OnCharacterStart(int ClientID)
