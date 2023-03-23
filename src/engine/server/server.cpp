@@ -2265,30 +2265,35 @@ void CServer::UpdateServerInfo(bool Resend)
 
 	UpdateRegisterServerInfo();
 
-	for(int i = 0; i < 3; i++)
-		for(int j = 0; j < 2; j++)
-			CacheServerInfo(&m_aServerInfoCache[i * 2 + j], i, j);
+//	for(int i = 0; i < 3; i++)
+//		for(int j = 0; j < 2; j++)
+//			CacheServerInfo(&m_aServerInfoCache[i * 2 + j], i, j);
+//
+//	for(int i = 0; i < 2; i++)
+//		CacheServerInfoSixup(&m_aSixupServerInfoCache[i], i);
 
-	for(int i = 0; i < 2; i++)
-		CacheServerInfoSixup(&m_aSixupServerInfoCache[i], i);
+//	if(Resend)
+//	{
+//		for(int i = 0; i < MaxClients(); ++i)
+//		{
+//			if(m_aClients[i].m_State != CClient::STATE_EMPTY)
+//			{
+//				if(!IsSixup(i))
+//					SendServerInfo(m_NetServer.ClientAddr(i), -1, SERVERINFO_INGAME, false);
+//				else
+//				{
+//					CMsgPacker Msg(4, true, true); //NETMSG_SERVERINFO //TODO: Import the shared protocol from 7 as well
+//					GetServerInfoSixup(&Msg, -1, false);
+//					SendMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_FLUSH, i);
+//				}
+//			}
+//		}
+//	}
 
-	if(Resend)
-	{
+	if (Resend)
 		for(int i = 0; i < MaxClients(); ++i)
-		{
 			if(m_aClients[i].m_State != CClient::STATE_EMPTY)
-			{
-				if(!IsSixup(i))
-					SendServerInfo(m_NetServer.ClientAddr(i), -1, SERVERINFO_INGAME, false);
-				else
-				{
-					CMsgPacker Msg(4, true, true); //NETMSG_SERVERINFO //TODO: Import the shared protocol from 7 as well
-					GetServerInfoSixup(&Msg, -1, false);
-					SendMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_FLUSH, i);
-				}
-			}
-		}
-	}
+				SendServerInfo(m_NetServer.ClientAddr(i), -1, SERVERINFO_INGAME, false);
 
 	m_ServerInfoNeedsUpdate = false;
 }

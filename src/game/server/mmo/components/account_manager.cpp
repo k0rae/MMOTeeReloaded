@@ -245,12 +245,19 @@ void CAccountManager::OnTick()
 
 		if (!pResult->m_Completed)
 			continue;
+		CPlayer *pPly = GameServer()->m_apPlayers[pResult->m_ClientID];
+		if (!pPly)
+			continue;
 
 		if (pResult->m_aMessage[0] != '\0')
 			GameServer()->SendChatTarget(pResult->m_ClientID, pResult->m_aMessage);
 
 		if (pResult->m_State == SAccountResultBase::STATE_SUCCESSFUL)
-			GameServer()->m_apPlayers[pResult->m_ClientID]->m_LoggedIn = true;
+		{
+			pPly->m_LoggedIn = true;
+			mem_copy(&pPly->m_AccData, &pResult->m_AccData, sizeof(pPly->m_AccData));
+			mem_copy(&pPly->m_AccInv, &pResult->m_AccInv, sizeof(pPly->m_AccInv));
+		}
 
 		m_vpLoginResults.erase(m_vpLoginResults.begin() + i);
 	}
