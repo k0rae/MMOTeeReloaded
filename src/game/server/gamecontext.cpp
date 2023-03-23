@@ -1604,6 +1604,8 @@ void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 {
 	LogEvent("Disconnect", ClientID);
 
+	m_AccountManager.Save(ClientID);
+
 	AbortVoteKickOnDisconnect(ClientID);
 	m_pController->OnPlayerDisconnect(m_apPlayers[ClientID], pReason);
 	delete m_apPlayers[ClientID];

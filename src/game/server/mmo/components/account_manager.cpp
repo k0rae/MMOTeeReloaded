@@ -288,7 +288,7 @@ void CAccountManager::OnConsoleInit()
 
 void CAccountManager::OnTick()
 {
-	for (int i = 0; i < m_vpRegisterResults.size(); i++)
+	for (unsigned long i = 0; i < m_vpRegisterResults.size(); i++)
 	{
 		auto &pResult = m_vpRegisterResults[i];
 
@@ -301,7 +301,7 @@ void CAccountManager::OnTick()
 		m_vpRegisterResults.erase(m_vpRegisterResults.begin() + i);
 	}
 
-	for (int i = 0; i < m_vpLoginResults.size(); i++)
+	for (unsigned long i = 0; i < m_vpLoginResults.size(); i++)
 	{
 		auto &pResult = m_vpLoginResults[i];
 
@@ -323,4 +323,9 @@ void CAccountManager::OnTick()
 
 		m_vpLoginResults.erase(m_vpLoginResults.begin() + i);
 	}
+
+	// Auto account save
+	if (Server()->Tick() % (Server()->TickSpeed() * 60) == 0)
+		for (int i = 0; i < MAX_PLAYERS; i++)
+			Save(i);
 }
