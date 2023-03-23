@@ -44,20 +44,12 @@ bool CLaser::HitCharacter(vec2 From, vec2 To)
 	CCharacter *pOwnerChar = GameServer()->GetPlayerChar(m_Owner);
 	CCharacter *pHit;
 	CDummyBase *pHitDummy;
-	bool pDontHitSelf = g_Config.m_SvOldLaser || (m_Bounces == 0 && !m_WasTele);
+	bool pDontHitSelf = pOwnerChar;
 
-	if(pOwnerChar ? (!pOwnerChar->LaserHitDisabled() && m_Type == WEAPON_LASER) || (!pOwnerChar->ShotgunHitDisabled() && m_Type == WEAPON_SHOTGUN) : g_Config.m_SvHit)
-	{
-		pHit = GameServer()->m_World.IntersectCharacter(m_Pos, To, 0.f, At, pDontHitSelf ? pOwnerChar : 0, m_Owner);
-		pHitDummy = GameWorld()->IntersectDummy(m_Pos, To, 0.f, At);
-	}
-	else
-	{
-		pHit = GameServer()->m_World.IntersectCharacter(m_Pos, To, 0.f, At, pDontHitSelf ? pOwnerChar : 0, m_Owner, pOwnerChar);
-		pHitDummy = GameWorld()->IntersectDummy(m_Pos, To, 0.f, At);
-	}
+	pHit = GameServer()->m_World.IntersectCharacter(m_Pos, To, 0.f, At, pDontHitSelf ? pOwnerChar : 0x0, m_Owner);
+	pHitDummy = GameWorld()->IntersectDummy(m_Pos, To, 0.f, At);
 
-	if(!pHit || !pHitDummy || (pHit == pOwnerChar && g_Config.m_SvOldLaser) || (pHit != pOwnerChar && pOwnerChar ? (pOwnerChar->LaserHitDisabled() && m_Type == WEAPON_LASER) || (pOwnerChar->ShotgunHitDisabled() && m_Type == WEAPON_SHOTGUN) : !g_Config.m_SvHit))
+	if(!pHit && !pHitDummy)
 		return false;
 
 	m_From = From;
@@ -105,8 +97,6 @@ bool CLaser::HitCharacter(vec2 From, vec2 To)
 	}
 	else if(m_Type == WEAPON_LASER)
 	{
-		pHit->UnFreeze();
-
 		if (pHit)
 			pHit->TakeDamage(vec2(0, 0), g_pData->m_Weapons.m_Laser.m_pBase->m_Damage, m_Owner, WEAPON_LASER);
 		if (pHitDummy)
