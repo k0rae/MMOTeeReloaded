@@ -4,6 +4,12 @@
 #include <game/server/player.h>
 #include <game/server/entities/character.h>
 
+#ifdef __GNUC__
+#define str_scan(Str, Format, ...) sscanf(Str, Format, __VA_ARGS__)
+#else
+#define str_scan(Str, Format, ...) sscanf_s(Str, Format, __VA_ARGS__)
+#endif
+
 CVoteMenu::CVoteMenu()
 {
 	for (int &i : m_aPlayersMenu)
@@ -38,7 +44,7 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 	// Handle cmds
 	int Value1;
 
-	if (sscanf_s(aCmd, "set%d", &Value1))
+	if (str_scan(aCmd, "set%d", &Value1))
 	{
 		m_aPlayersMenu[ClientID] = Value1;
 		RebuildMenu(ClientID);
@@ -47,17 +53,17 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 		if (pChr)
 			GameServer()->CreateSound(pChr->m_Pos, SOUND_PICKUP_ARMOR);
 	}
-	else if (sscanf_s(aCmd, "inv_list%d", &Value1))
+	else if (str_scan(aCmd, "inv_list%d", &Value1))
 	{
 		RebuildMenu(ClientID);
 		AddMenuVote(ClientID, "null", "");
 		ListInventory(ClientID, Value1);
 	}
-	else if (sscanf_s(aCmd, "inv_item%d", &Value1))
+	else if (str_scan(aCmd, "inv_item%d", &Value1))
 	{
 		ItemInfo(ClientID, Value1);
 	}
-	else if (sscanf_s(aCmd, "inv_item_use%d", &Value1))
+	else if (str_scan(aCmd, "inv_item_use%d", &Value1))
 	{
 		int Count = 1;
 		try
@@ -69,7 +75,7 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 		RebuildMenu(ClientID);
 		MMOCore()->UseItem(ClientID, Value1, Count);
 	}
-	else if (sscanf_s(aCmd, "upgr%d", &Value1))
+	else if (str_scan(aCmd, "upgr%d", &Value1))
 	{
 		int Count = 1;
 		try
