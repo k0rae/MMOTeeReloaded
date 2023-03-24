@@ -2073,6 +2073,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 
 			m_pController->DoTeamChange(pPlayer, pMsg->m_Team);
 			m_VoteMenu.SetMenu(ClientID, MENU_MAIN);
+			m_VoteMenu.RebuildMenu(ClientID);
 		}
 		else if(MsgID == NETMSGTYPE_CL_ISDDNETLEGACY)
 		{

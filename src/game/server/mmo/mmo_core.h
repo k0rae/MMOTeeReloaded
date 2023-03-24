@@ -51,6 +51,9 @@ public:
 
 	const char *GetUpgradeName(int UpgradeID);
 	int GetUpgradeCost(int UpgradeID);
+
+	int _GetMinerLevelID(int Level);
+	int GetRandomMinerItemByLevel(int Level);
 };
 
 #endif // GAME_SERVER_MMO_MMO_CORE_H

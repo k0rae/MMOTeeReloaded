@@ -65,7 +65,7 @@ void CPickupJob::Damage(int ClientID)
 
 		GameServer()->CreateSound(m_Pos, SOUND_NINJA_HIT);
 
-		// Give item
+		// Give items
 		if (m_Type == PICKUP_JOB_TYPE_FARM)
 		{
 			int Item = ITEM_CARROT;
@@ -80,14 +80,20 @@ void CPickupJob::Damage(int ClientID)
 
 			MMOCore()->GiveItem(ClientID, Item, Count);
 		}
-	}
+		else if (m_Type == PICKUP_JOB_TYPE_MINE)
+		{
+			int Item = MMOCore()->GetRandomMinerItemByLevel(pPly->m_AccWorks.m_aWorks[WorkID].m_Level);
 
-	// Give exp
-	if (WorkID != -1)
-	{
-		pPly->AddWorkEXP(WorkID, 1);
-		str_format(aBuf, sizeof(aBuf), "+1 %s work exp", MMOCore()->GetWorkName(WorkID));
-		GameServer()->SendChatTarget(ClientID, aBuf);
+			MMOCore()->GiveItem(ClientID, Item, 1);
+		}
+
+		// Give exp
+		if (WorkID != -1)
+		{
+			pPly->AddWorkEXP(WorkID, 1);
+			str_format(aBuf, sizeof(aBuf), "+1 %s work exp", MMOCore()->GetWorkName(WorkID));
+			GameServer()->SendChatTarget(ClientID, aBuf);
+		}
 	}
 
 	GameServer()->CreateSound(m_Pos, SOUND_HOOK_LOOP);

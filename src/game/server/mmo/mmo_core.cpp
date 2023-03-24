@@ -282,3 +282,46 @@ int CMMOCore::GetUpgradeCost(int UpgradeID)
 {
 	return 1;
 }
+
+int CMMOCore::_GetMinerLevelID(int Level)
+{
+	int a = floor(Level / 50);
+	int b = ITEM_COPPER;
+	const int StartID = ITEM_COPPER - 1;
+
+	switch(a)
+	{
+	case 0: b = ITEM_COPPER; break; // < 50 lvl
+	case 1: b = ITEM_IRON; break; // < 100 lvl
+	case 2: b = ITEM_GOLD; break; // < 150 lvl
+	case 3: b = ITEM_DIAMOND; break; // < 200 lvl
+	case 4: b = ITEM_OBSIDIAN; break; // < 250 lvl
+	case 5: b = ITEM_MITHRIL_ORE; break; // < 350 lvl
+	case 6: b = ITEM_ORIHALCIUM_ORE; break; // < 400 lvl
+	case 7: b = ITEM_ADAMANTITE_ORE; break; // < 450 lvl
+	case 8: b = ITEM_TITANIUM_ORE; break; // < 500 lvl
+	case 9: b = ITEM_DRAGON_ORE; break; // < 600 lvl
+	default: b = ITEM_ASTRALIUM_ORE; break; // All other
+	}
+
+	return b - StartID;
+}
+
+int CMMOCore::GetRandomMinerItemByLevel(int Level)
+{
+	int MaxRandom = _GetMinerLevelID(Level);
+	switch(rand() % MaxRandom)
+	{
+	case 0: return ITEM_COPPER;
+	case 1: return ITEM_IRON;
+	case 2: return ITEM_GOLD;
+	case 3: return ITEM_DIAMOND;
+	case 4: return ITEM_OBSIDIAN;
+	case 5: return ITEM_MITHRIL_ORE;
+	case 6: return ITEM_ORIHALCIUM_ORE;
+	case 7: return ITEM_ADAMANTITE_ORE;
+	case 8: return ITEM_TITANIUM_ORE;
+	case 9: return ITEM_DRAGON_ORE;
+	default: return ITEM_ASTRALIUM_ORE;
+	}
+}
