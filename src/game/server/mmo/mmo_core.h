@@ -11,6 +11,13 @@ enum
 	BOT_IDS_OFFSET = 24
 };
 
+struct SShopEntry
+{
+	int m_ID;
+	int m_Cost;
+	int m_Level;
+};
+
 class CGameContext;
 
 class CMMOCore
@@ -24,6 +31,7 @@ class CMMOCore
 	int m_aBotSnapIDs[MAX_CLIENTS];
 
 	std::vector<SInvItem> m_vItems;
+	std::vector<SShopEntry> m_vShopItems;
 
 	SInvItem *GetItem(int ItemID);
 
@@ -48,6 +56,8 @@ public:
 
 	void GiveItem(int ClientID, int ItemID, int Count = 1, int Quality = QUALITY_0, int Data = 0);
 	void UseItem(int ClientID, int ItemID, int Count);
+	void BuyItem(int ClientID, int ItemID);
+	std::vector<SShopEntry> &GetShopItems() { return m_vShopItems; }
 
 	const char *GetUpgradeName(int UpgradeID);
 	int GetUpgradeCost(int UpgradeID);

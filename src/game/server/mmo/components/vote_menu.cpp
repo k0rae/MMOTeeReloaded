@@ -97,6 +97,11 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 
 		RebuildMenu(ClientID);
 	}
+	else if (str_scan(aCmd, "shop%d", &Value1))
+	{
+		MMOCore()->BuyItem(ClientID, Value1);
+		RebuildMenu(ClientID);
+	}
 }
 
 void CVoteMenu::OnPlayerLeft(int ClientID)
@@ -141,6 +146,7 @@ void CVoteMenu::RebuildMenu(int ClientID)
 	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
 	if (!pPly)
 		return;
+	CCharacter *pChr = pPly->GetCharacter();
 
 	ClearVotes(ClientID);
 
@@ -167,6 +173,25 @@ void CVoteMenu::RebuildMenu(int ClientID)
 		AddMenuChangeVote(ClientID, MENU_EQUIP, "☞ Equipment");
 		AddMenuChangeVote(ClientID, MENU_INVENTORY, "☞ Inventory");
 		AddMenuChangeVote(ClientID, MENU_UPGRADE, "☞ Upgrade");
+
+		if (pChr && pChr->m_InShop)
+		{
+			char aCmd[256];
+
+			AddMenuVote(ClientID, "null", "------------ Shop");
+
+			for (SShopEntry Entry : MMOCore()->GetShopItems())
+			{
+				str_format(aBuf, sizeof(aBuf), "☞ %s",
+					MMOCore()->GetItemName(Entry.m_ID));
+				str_format(aCmd, sizeof(aCmd), "shop%d", Entry.m_ID);
+				AddMenuVote(ClientID, aCmd, aBuf);
+
+				str_format(aBuf, sizeof(aBuf), "Cost: %d | Level: %d",
+					Entry.m_Cost, Entry.m_Level);
+				AddMenuVote(ClientID, "null", aBuf);
+			}
+		}
 	}
 	else if (Menu == MENU_INFO)
 	{

@@ -253,6 +253,8 @@ public:
 	bool IsNoDamage() const { return m_NoDamage; }
 	void SetNoDamage(bool State) { m_NoDamage = State; }
 
+	bool m_InShop;
+
 private:
 	bool m_NoDamage;
 	bool m_InWater;

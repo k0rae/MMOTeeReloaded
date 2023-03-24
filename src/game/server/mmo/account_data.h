@@ -1,6 +1,7 @@
 #ifndef GAME_SERVER_MMO_ACCOUNT_DATA_H
 #define GAME_SERVER_MMO_ACCOUNT_DATA_H
 
+#include <algorithm>
 #include <vector>
 
 enum

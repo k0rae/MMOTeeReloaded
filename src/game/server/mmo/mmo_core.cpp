@@ -17,8 +17,8 @@ void CMMOCore::Init(CGameContext *pGameServer)
 	m_pGameServer = pGameServer;
 
 	// Load items from mmo/items.xml
-	xml_document Document;
-	xml_parse_result ParseResult = Document.load_file("mmo/items.xml");
+	xml_document DocumentItems;
+	xml_parse_result ParseResult = DocumentItems.load_file("mmo/items.xml");
 
 	if (!ParseResult)
 	{
@@ -28,7 +28,7 @@ void CMMOCore::Init(CGameContext *pGameServer)
 		dbg_break();
 	}
 
-	xml_node Items = Document.child("Items");
+	xml_node Items = DocumentItems.child("Items");
 
 	for (xml_node Node : Items)
 	{
@@ -39,6 +39,30 @@ void CMMOCore::Init(CGameContext *pGameServer)
 		str_copy(Item.m_aName, Node.attribute("Name").as_string("[ERROR ITEM]"));
 
 		m_vItems.push_back(Item);
+	}
+
+	// Load shop items from mmo/shop.xml
+	xml_document DocumentShop;
+	ParseResult = DocumentShop.load_file("mmo/shop.xml");
+
+	if (!ParseResult)
+	{
+		dbg_msg("xml", "source file 'mmo/items.xml' parsed with errors!");
+		dbg_msg("xml", "error: %s", ParseResult.description());
+
+		dbg_break();
+	}
+
+	xml_node ShopItems = DocumentShop.child("Shop");
+
+	for (xml_node Node : ShopItems)
+	{
+		SShopEntry Entry;
+		Entry.m_ID = Node.attribute("ID").as_int(-1);
+		Entry.m_Cost = Node.attribute("Cost").as_int(-1);
+		Entry.m_Level = Node.attribute("Level").as_int(-1);
+
+		m_vShopItems.push_back(Entry);
 	}
 }
 
@@ -257,6 +281,40 @@ void CMMOCore::UseItem(int ClientID, int ItemID, int Count)
 
 	// Delete items from inventory
 	pPly->m_AccInv.RemItem(ItemID, Count);
+}
+
+void CMMOCore::BuyItem(int ClientID, int ItemID)
+{
+	if (ClientID < 0 || ClientID >= MAX_PLAYERS)
+		return;
+	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+	if (!pPly || !pPly->m_LoggedIn)
+		return;
+
+	// Get entry
+	auto it = std::find_if(m_vShopItems.begin(), m_vShopItems.end(), [&](const SShopEntry &e) {
+		return (e.m_ID == ItemID);
+	});
+
+	if (it == m_vShopItems.end())
+		return;
+
+	// Check for level
+	if (pPly->m_AccData.m_Level < it->m_Level)
+	{
+		GameServer()->SendChatTarget(ClientID, "You don't have needed level");
+		return;
+	}
+
+	// Check for money
+	if (pPly->m_AccData.m_Money < it->m_Cost)
+	{
+		GameServer()->SendChatTarget(ClientID, "You don't have needed money");
+		return;
+	}
+
+	GiveItem(ClientID, ItemID);
+	pPly->m_AccData.m_Money -= it->m_Cost;
 }
 
 const char *CMMOCore::GetUpgradeName(int UpgradeID)

@@ -2033,11 +2033,10 @@ void CCharacter::HandleMMOTiles(int Tile)
 		GameServer()->SendMMOBroadcast(ClientID, 1.f, "+15 EXP FROM CHAIR");
 	}
 
-
-	if (Tile == TILE_WATER)
+	else if (Tile == TILE_WATER)
 	{
 		if (!m_InWater)
-			GameServer()->CreateDeath(m_Pos, m_pPlayer->GetCID());
+			GameServer()->CreateDeath(m_Pos, ClientID);
 
 		m_Core.m_Vel.y -= GameServer()->Tuning()->m_Gravity * 1.1f;
 		m_InWater = true;
@@ -2045,8 +2044,25 @@ void CCharacter::HandleMMOTiles(int Tile)
 	else
 	{
 		if (m_InWater)
-			GameServer()->CreateDeath(m_Pos, m_pPlayer->GetCID());
+			GameServer()->CreateDeath(m_Pos, ClientID);
 
 		m_InWater = false;
+	}
+
+	if (Tile == TILE_SHOP_ON && !m_InShop)
+	{
+		m_InShop = true;
+		GameServer()->SendMMOBroadcast(ClientID, 1.5f, "YOU'RE IN SHOP NOW");
+
+		GameServer()->m_VoteMenu.SetMenu(ClientID, MENU_MAIN);
+		GameServer()->m_VoteMenu.RebuildMenu(ClientID);
+	}
+	else if (Tile == TILE_SHOP_OFF && m_InShop)
+	{
+		m_InShop = false;
+		GameServer()->SendMMOBroadcast(ClientID, 1.5f, "YOU'RE NOT IN SHOP NOW");
+
+		GameServer()->m_VoteMenu.SetMenu(ClientID, MENU_MAIN);
+		GameServer()->m_VoteMenu.RebuildMenu(ClientID);
 	}
 }
