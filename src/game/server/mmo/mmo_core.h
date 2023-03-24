@@ -31,6 +31,8 @@ public:
 	void Init(CGameContext *pGameServer);
 
 	int GetExpForLevelUp(int Level);
+	int GetExpForLevelUpWork(int WorkID, int Level);
+	const char *GetWorkName(int WorkID);
 
 	void GetProgressBar(char *pStr, int StrSize, char Filler, char Empty, int Num, int MaxNum);
 

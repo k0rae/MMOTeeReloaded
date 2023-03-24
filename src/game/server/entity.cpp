@@ -30,6 +30,8 @@ CEntity::~CEntity()
 	Server()->SnapFreeID(m_ID);
 }
 
+CMMOCore *CEntity::MMOCore() { return &GameServer()->m_MMOCore; }
+
 bool CEntity::NetworkClipped(int SnappingClient) const
 {
 	return ::NetworkClipped(m_pGameWorld->GameServer(), SnappingClient, m_Pos);

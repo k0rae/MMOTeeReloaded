@@ -114,6 +114,24 @@ bool CAccountManager::LoginThread(IDbConnection *pSqlServer, const ISqlData *pGa
 	}
 
 	pResult->m_AccInv = Inventory;
+
+	// Load works
+	str_copy(aBuf, "SELECT work_id, level, exp FROM u_works WHERE user_id = ?");
+	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
+		return true;
+	pSqlServer->BindInt(1, pResult->m_AccData.m_ID);
+
+	SAccountWorksData Works;
+
+	End = false;
+	while(!pSqlServer->Step(&End, pError, ErrorSize) && !End)
+	{
+		int ID = pSqlServer->GetInt(1);
+		Works.m_aWorks[ID].m_Level = pSqlServer->GetInt(2);
+		Works.m_aWorks[ID].m_EXP = pSqlServer->GetInt(3);
+	}
+
+	pResult->m_AccWorks = Works;
 	pResult->m_State = SAccountResultBase::STATE_SUCCESSFUL;
 	str_copy(pResult->m_aMessage, "You successfully logged to account.");
 
@@ -174,7 +192,7 @@ bool CAccountManager::SaveThread(IDbConnection *pSqlServer, const ISqlData *pGam
 
 	// Insert items
 	str_copy(aBuf, "INSERT INTO u_inv(id, item_id, count, quality, data, type, rarity) VALUES (?, ?, ?, ?, ?, ?, ?)");
-	for (SInvItem Item : pData->m_AccInventory.m_vItems)
+	for (SInvItem Item : pData->m_AccInv.m_vItems)
 	{
 		if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
 			return true;
@@ -190,6 +208,37 @@ bool CAccountManager::SaveThread(IDbConnection *pSqlServer, const ISqlData *pGam
 			return true;
 	}
 
+	// Clean old works data
+	str_copy(aBuf, "DELETE FROM u_works WHERE user_id = ?");
+
+	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
+		return true;
+	pSqlServer->BindInt(1, pData->m_AccData.m_ID);
+
+	if(pSqlServer->ExecuteUpdate(&NumInserted, pError, ErrorSize))
+		return true;
+
+	// Insert work data
+	str_copy(aBuf, "INSERT INTO u_inv(user_id, work_id, exp, level) VALUES (?, ?, ?, ?)");
+	for (int i = 0; i < std::size(pData->m_AccWorks.m_aWorks); i++)
+	{
+		const SWorkData &Work = pData->m_AccWorks.m_aWorks[i];
+
+		// Don't save useless info
+		if (Work.m_Level == 1 && Work.m_EXP == 0)
+			continue;
+
+		if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
+			return true;
+		pSqlServer->BindInt(1, pData->m_AccData.m_ID);
+		pSqlServer->BindInt(2, i);
+		pSqlServer->BindInt(3, Work.m_EXP);
+		pSqlServer->BindInt(4, Work.m_Level);
+
+		if(pSqlServer->ExecuteUpdate(&NumInserted, pError, ErrorSize))
+			return true;
+	}
+
 	return false;
 }
 
@@ -199,10 +248,11 @@ void CAccountManager::Save(int ClientID)
 	if (!pPly)
 		return;
 
-	auto Request = std::make_unique<SAccountSaveRequest>();
-	Request->m_AccData = pPly->m_AccData;
-	Request->m_AccInventory = pPly->m_AccInv;
-	DBPool()->Execute(SaveThread, std::move(Request), "Save");
+	auto pRequest = std::make_unique<SAccountSaveRequest>();
+	pRequest->m_AccData = pPly->m_AccData;
+	pRequest->m_AccInv = pPly->m_AccInv;
+	pRequest->m_AccWorks = pPly->m_AccWorks;
+	DBPool()->Execute(SaveThread, std::move(pRequest), "Save");
 }
 
 void CAccountManager::ChatRegister(IConsole::IResult *pResult, void *pUserData)
@@ -325,6 +375,7 @@ void CAccountManager::OnTick()
 			pPly->m_LoggedIn = true;
 			pPly->m_AccData = pResult->m_AccData;
 			pPly->m_AccInv = pResult->m_AccInv;
+			pPly->m_AccWorks = pResult->m_AccWorks;
 		}
 
 		m_vpLoginResults.erase(m_vpLoginResults.begin() + i);

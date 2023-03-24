@@ -64,6 +64,7 @@ public: // TODO: Maybe make protected
 	class CGameContext *GameServer() { return m_pGameWorld->GameServer(); }
 	class IServer *Server() { return m_pGameWorld->Server(); }
 	CCollision *Collision() { return m_pCCollision; }
+	class CMMOCore *MMOCore();
 
 	/* Getters */
 	CEntity *TypeNext() { return m_pNextTypeEntity; }

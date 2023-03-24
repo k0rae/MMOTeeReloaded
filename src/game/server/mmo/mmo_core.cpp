@@ -98,6 +98,32 @@ int CMMOCore::GetExpForLevelUp(int Level)
 	return Level * Exp;
 }
 
+int CMMOCore::GetExpForLevelUpWork(int WorkID, int Level)
+{
+	switch(WorkID)
+	{
+	case WORK_FARMER: return 10;
+	case WORK_MINER: return 100;
+	case WORK_MATERIAL: return 100;
+	case WORK_FISHER: return 100;
+	}
+
+	return 99999999;
+}
+
+const char *CMMOCore::GetWorkName(int WorkID)
+{
+	switch(WorkID)
+	{
+	case WORK_FARMER: return "Farmer";
+	case WORK_MINER: return "Miner";
+	case WORK_FISHER: return "Fisher";
+	case WORK_MATERIAL: return "Loader";
+	}
+
+	return "None";
+}
+
 void CMMOCore::GetProgressBar(char *pStr, int StrSize, char Filler, char Empty, int Num, int MaxNum)
 {
 	int c = StrSize - 1;

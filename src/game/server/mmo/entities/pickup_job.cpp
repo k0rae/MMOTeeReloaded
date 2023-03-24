@@ -2,6 +2,7 @@
 
 #include <engine/server.h>
 #include <game/server/gamecontext.h>
+#include <game/server/player.h>
 
 #include <cstdlib>
 
@@ -27,16 +28,40 @@ CPickupJob::~CPickupJob()
 
 void CPickupJob::Damage(int ClientID)
 {
+	// WARNING: SHIT CODE!
+
 	if (m_State == 0)
 		return;
+	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+
+	int WorkID = -1;
+	if (m_Type == PICKUP_JOB_TYPE_FARM)
+		WorkID = WORK_FARMER;
+	if (m_Type == PICKUP_JOB_TYPE_MINE)
+		WorkID = WORK_MINER;
 
 	m_DestroyProgress += 20;
 
+	int WorkLevel = ((WorkID == -1) ? 0 : pPly->m_AccWorks.m_aWorks[WorkID].m_Level);
+
+	// Send damage progress
+	char aProgress[20 + 1];
+	MMOCore()->GetProgressBar(aProgress, sizeof(aProgress), ':', ' ', m_DestroyProgress, 100);
+	char aBuf[256];
+	str_format(aBuf, sizeof(aBuf), "Harvest progress:\n[%s] %d%%\nWork %s:\nLv: %d | EXP: %d/%d",
+		aProgress, m_DestroyProgress, MMOCore()->GetWorkName(WorkID),
+		WorkLevel,
+		(WorkID == -1) ? 0 : pPly->m_AccWorks.m_aWorks[WorkID].m_EXP,
+		MMOCore()->GetExpForLevelUpWork(WorkID, WorkLevel));
+
+	GameServer()->SendMMOBroadcast(ClientID, 1.5f, aBuf);
+
+	// If pickup was collected
 	if (m_DestroyProgress >= 100)
 	{
 		m_State = 0;
 		m_DestroyProgress = 0;
-		m_NextGrowTick = Server()->Tick() + Server()->TickSpeed() * 10;
+		m_NextGrowTick = Server()->Tick() + Server()->TickSpeed() * PICKUP_JOB_SPAWN_CD;
 
 		GameServer()->CreateSound(m_Pos, SOUND_NINJA_HIT);
 
@@ -44,16 +69,25 @@ void CPickupJob::Damage(int ClientID)
 		if (m_Type == PICKUP_JOB_TYPE_FARM)
 		{
 			int Item = ITEM_CARROT;
-			int Count = 1;
-			Count += Count * (m_State / 2 + 0.5f);
+			int Count = pPly->m_AccWorks.m_aWorks[WorkID].m_Level;
+			Count += floor((double)Count * (m_State / 2 + 0.5f));
+
 			switch(rand() % 5)
 			{
 			case 0: Item = ITEM_TOMATO; break;
 			case 1: Item = ITEM_POTATO; break;
 			}
 
-			GameServer()->m_MMOCore.GiveItem(ClientID, Item, Count);
+			MMOCore()->GiveItem(ClientID, Item, Count);
 		}
+	}
+
+	// Give exp
+	if (WorkID != -1)
+	{
+		pPly->AddWorkEXP(WorkID, 1);
+		str_format(aBuf, sizeof(aBuf), "+1 %s work exp", MMOCore()->GetWorkName(WorkID));
+		GameServer()->SendChatTarget(ClientID, aBuf);
 	}
 
 	GameServer()->CreateSound(m_Pos, SOUND_HOOK_LOOP);
@@ -65,7 +99,7 @@ void CPickupJob::Tick()
 	{
 		m_State++;
 
-		m_NextGrowTick = Server()->Tick() + Server()->TickSpeed() * 10;
+		m_NextGrowTick = Server()->Tick() + Server()->TickSpeed() * PICKUP_JOB_SPAWN_CD;
 	}
 }
 

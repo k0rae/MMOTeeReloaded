@@ -839,3 +839,24 @@ void CPlayer::AddEXP(int EXP)
 	if (LevelUpped)
 		GameServer()->m_AccountManager.Save(m_ClientID);
 }
+
+void CPlayer::AddWorkEXP(int WorkID, int EXP)
+{
+	SWorkData &Work = m_AccWorks.m_aWorks[WorkID];
+	Work.m_EXP += EXP;
+
+	bool LevelUpped = false;
+	int NeedEXP = GameServer()->m_MMOCore.GetExpForLevelUpWork(WorkID, m_AccData.m_Level);
+	while (Work.m_EXP >= NeedEXP)
+	{
+		Work.m_EXP -= NeedEXP;
+		Work.m_Level++;
+
+		NeedEXP = GameServer()->m_MMOCore.GetExpForLevelUpWork(WorkID, m_AccData.m_Level);
+
+		LevelUpped = true;
+	}
+
+	if (LevelUpped)
+		GameServer()->m_AccountManager.Save(m_ClientID);
+}

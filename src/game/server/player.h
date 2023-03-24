@@ -221,9 +221,11 @@ public:
 	// MMOTeeReloaded stuff
 	SAccountData m_AccData;
 	CAccountInventory m_AccInv;
+	SAccountWorksData m_AccWorks;
 	bool m_LoggedIn;
 
 	void AddEXP(int EXP);
+	void AddWorkEXP(int WorkID, int EXP);
 };
 
 #endif
