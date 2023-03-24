@@ -255,6 +255,7 @@ public:
 
 private:
 	bool m_NoDamage;
+	bool m_InWater;
 
 	void HandleMMOTiles(int Tile);
 };

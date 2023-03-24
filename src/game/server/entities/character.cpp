@@ -1099,6 +1099,10 @@ void CCharacter::SnapCharacter(int SnappingClient, int ID)
 			Weapon = WEAPON_NINJA;
 	}
 
+	// Change eyes if player in water
+	if(m_InWater)
+		Emote = EMOTE_BLINK;
+
 	// This could probably happen when m_Jetpack changes instead
 	// jetpack and ninjajetpack prediction
 	if(m_pPlayer->GetCID() == SnappingClient)
@@ -2027,5 +2031,22 @@ void CCharacter::HandleMMOTiles(int Tile)
 	{
 		m_pPlayer->AddEXP(15);
 		GameServer()->SendMMOBroadcast(ClientID, 1.f, "+15 EXP FROM CHAIR");
+	}
+
+
+	if (Tile == TILE_WATER)
+	{
+		if (!m_InWater)
+			GameServer()->CreateDeath(m_Pos, m_pPlayer->GetCID());
+
+		m_Core.m_Vel.y -= GameServer()->Tuning()->m_Gravity * 1.1f;
+		m_InWater = true;
+	}
+	else
+	{
+		if (m_InWater)
+			GameServer()->CreateDeath(m_Pos, m_pPlayer->GetCID());
+
+		m_InWater = false;
 	}
 }
