@@ -8,15 +8,11 @@
 #include <game/server/entities/character.h>
 #include <game/server/gamecontext.h>
 #include <game/server/player.h>
-#include <game/version.h>
-
-#define GAME_TYPE_NAME "MMOTee"
-#define TEST_TYPE_NAME "MMOTee"
 
 CGameControllerDDRace::CGameControllerDDRace(class CGameContext *pGameServer) :
-	IGameController(pGameServer), m_Teams(pGameServer), m_pLoadBestTimeResult(nullptr)
+	IGameController(pGameServer), m_Teams(pGameServer)
 {
-	m_pGameType = g_Config.m_SvTestingCommands ? TEST_TYPE_NAME : GAME_TYPE_NAME;
+	m_pGameType = "MMOTee";
 
 	InitTeleporter();
 }

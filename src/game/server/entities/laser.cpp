@@ -39,7 +39,6 @@ CLaser::CLaser(CGameWorld *pGameWorld, vec2 Pos, vec2 Direction, float StartEner
 
 bool CLaser::HitCharacter(vec2 From, vec2 To)
 {
-	static const vec2 StackedLaserShotgunBugSpeed = vec2(-2147483648.0f, -2147483648.0f);
 	vec2 At;
 	CCharacter *pOwnerChar = GameServer()->GetPlayerChar(m_Owner);
 	CCharacter *pHit;
@@ -55,53 +54,15 @@ bool CLaser::HitCharacter(vec2 From, vec2 To)
 	m_From = From;
 	m_Pos = At;
 	m_Energy = -1;
-	if(m_Type == WEAPON_SHOTGUN)
-	{
-//		vec2 Temp;
-//
-//		float Strength;
-//		if(!m_TuneZone)
-//			Strength = GameServer()->Tuning()->m_ShotgunStrength;
-//		else
-//			Strength = GameServer()->TuningList()[m_TuneZone].m_ShotgunStrength;
-//
-//		vec2 &HitPos = pHit->Core()->m_Pos;
-//		if(!g_Config.m_SvOldLaser)
-//		{
-//			if(m_PrevPos != HitPos)
-//			{
-//				Temp = pHit->Core()->m_Vel + normalize(m_PrevPos - HitPos) * Strength;
-//				pHit->Core()->m_Vel = ClampVel(pHit->m_MoveRestrictions, Temp);
-//			}
-//			else
-//			{
-//				pHit->Core()->m_Vel = StackedLaserShotgunBugSpeed;
-//			}
-//		}
-//		else if(g_Config.m_SvOldLaser && pOwnerChar)
-//		{
-//			if(pOwnerChar->Core()->m_Pos != HitPos)
-//			{
-//				Temp = pHit->Core()->m_Vel + normalize(pOwnerChar->Core()->m_Pos - HitPos) * Strength;
-//				pHit->Core()->m_Vel = ClampVel(pHit->m_MoveRestrictions, Temp);
-//			}
-//			else
-//			{
-//				pHit->Core()->m_Vel = StackedLaserShotgunBugSpeed;
-//			}
-//		}
-//		else
-//		{
-//			pHit->Core()->m_Vel = ClampVel(pHit->m_MoveRestrictions, pHit->Core()->m_Vel);
-//		}
-	}
-	else if(m_Type == WEAPON_LASER)
+
+	if(m_Type == WEAPON_LASER)
 	{
 		if (pHit)
 			pHit->TakeDamage(vec2(0, 0), g_pData->m_Weapons.m_Laser.m_pBase->m_Damage, m_Owner, WEAPON_LASER);
 		if (pHitDummy)
 			pHitDummy->TakeDamage(vec2(0, 0), g_pData->m_Weapons.m_Laser.m_pBase->m_Damage, m_Owner, WEAPON_LASER);
 	}
+
 	return true;
 }
 
