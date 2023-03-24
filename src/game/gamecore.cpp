@@ -10,7 +10,7 @@
 #include <game/server/mmo/dummies/dummy_base.h>
 
 const char *CTuningParams::ms_apNames[] =
-	{
+{
 #define MACRO_TUNING_PARAM(Name, ScriptName, Value, Description) #ScriptName,
 #include "tuning.h"
 #undef MACRO_TUNING_PARAM
@@ -321,6 +321,8 @@ void CCharacterCore::Tick(bool UseInput, bool DoDeferredTick)
 			for (CCharacterCore *pCore : m_pWorld->m_vDummies)
 			{
 				if (this == pCore)
+					continue;
+				if (!pCore->m_Alive)
 					continue;
 
 				vec2 ClosestPoint;
