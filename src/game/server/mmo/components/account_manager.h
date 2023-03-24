@@ -28,10 +28,13 @@ struct SAccountData
 
 struct SInvItem
 {
+	char m_aName[128];
 	int m_ID;
 	int m_Count;
 	int m_Quality;
 	int m_Data;
+	int m_Type;
+	int m_Rarity;
 };
 
 class CAccountInventory
@@ -39,19 +42,18 @@ class CAccountInventory
 public:
 	std::vector<SInvItem> m_vItems;
 
-	void AddItem(int ItemID, int Count = 1, int Quality = QUALITY_0, int Data = 0)
+	void AddItem(SInvItem Item)
 	{
-		auto it = std::find_if(m_vItems.begin(), m_vItems.end(), [&](SInvItem Item) {
-			return (Item.m_ID == ItemID);
+		auto it = std::find_if(m_vItems.begin(), m_vItems.end(), [&](SInvItem i) {
+			return (i.m_ID == Item.m_ID);
 		});
 
 		if (it == m_vItems.end())
 		{
-			SInvItem NewItem = { ItemID, Count, Quality, Data };
-			m_vItems.push_back(NewItem);
+			m_vItems.push_back(Item);
 		}
 		else
-			it->m_Count += Count;
+			it->m_Count += Item.m_Count;
 	}
 
 	void RemItem(int ItemID, int Count = -1)

@@ -43,6 +43,8 @@ void IDbConnection::FormatCreateInventories(char *aBuf, unsigned int BufferSize)
 		"CREATE TABLE IF NOT EXISTS u_inv ("
 		"  id INTEGER NOT NULL PRIMARY KEY, "
 		"  item_id INTEGER NOT NULL, "
+		"  rarity INTEGER NOT NULL, "
+		"  type INTEGER NOT NULL, "
 		"  count INTEGER NOT NULL DEFAULT 0, "
 		"  quality INTEGER NOT NULL DEFAULT 0, "
 		"  data INTEGER NOT NULL DEFAULT 0"

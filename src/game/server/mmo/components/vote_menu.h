@@ -10,17 +10,21 @@
 
 enum
 {
+	MENU_NO_AUTH,
 	MENU_MAIN,
 	MENU_INFO,
 	MENU_INVENTORY,
 	MENU_EQUIP,
-	MENU_UPGRADE
+	MENU_UPGRADE,
+	MENU_MAIL,
 };
 
 class CVoteMenu : public CServerComponent
 {
 	std::vector<CVoteOptionServer> m_aPlayersVotes[MAX_PLAYERS];
 	int m_aPlayersMenu[MAX_PLAYERS];
+
+	void ListInventory(int ClientID, int Type);
 
 public:
 	CVoteMenu();

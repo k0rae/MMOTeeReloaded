@@ -23,6 +23,8 @@
 #include "mmo/components/account_manager.h"
 #include "mmo/components/vote_menu.h"
 
+#include "mmo/mmo_core.h"
+
 /*
 	Tick
 		Game Context (CGameContext::tick)
@@ -47,8 +49,7 @@
 
 enum
 {
-	NUM_TUNEZONES = 256,
-	BOT_IDS_OFFSET = 24
+	NUM_TUNEZONES = 256
 };
 
 #define BC_LEFT(Text) Text "                                                                                                                                                      "
@@ -488,24 +489,17 @@ public:
 	CAccountManager m_AccountManager;
 	CVoteMenu m_VoteMenu;
 
-	int GetNextBotSnapID(int ClientID);
-	void CreateDummy(vec2 Pos, int DummyType);
+	CMMOCore m_MMOCore;
 
 	void SendMMOBroadcast(int ClientID, float Seconds, const char *pText);
-	int GetExpForLevelUp(int Level);
 
 private:
-	int m_aBotSnapIDs[MAX_CLIENTS];
-	void ClearBotSnapIDs();
-
 	void CreateEntitiesMMO();
 
 	struct {
 		char m_aText[256];
 		int m_EndTick;
 	} m_aClientsBroadcast[MAX_CLIENTS];
-
-	void GetProgressBar(char *pStr, int StrSize, char Filler, char Empty, int Num, int MaxNum);
 
 	static void ConCreateDummy(IConsole::IResult *pResult, void *pUserData);
 };

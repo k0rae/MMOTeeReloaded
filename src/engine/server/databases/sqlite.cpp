@@ -144,32 +144,7 @@ bool CSqliteConnection::Connect(char *pError, int ErrorSize)
 	{
 		if(Execute("PRAGMA journal_mode=WAL", pError, ErrorSize))
 			return true;
-		char aBuf[1024];
-		FormatCreateRace(aBuf, sizeof(aBuf), /* Backup */ false);
-		if(Execute(aBuf, pError, ErrorSize))
-			return true;
-		FormatCreateTeamrace(aBuf, sizeof(aBuf), "BLOB", /* Backup */ false);
-		if(Execute(aBuf, pError, ErrorSize))
-			return true;
-		FormatCreateMaps(aBuf, sizeof(aBuf));
-		if(Execute(aBuf, pError, ErrorSize))
-			return true;
-		FormatCreateSaves(aBuf, sizeof(aBuf), /* Backup */ false);
-		if(Execute(aBuf, pError, ErrorSize))
-			return true;
-		FormatCreatePoints(aBuf, sizeof(aBuf));
-		if(Execute(aBuf, pError, ErrorSize))
-			return true;
 
-		FormatCreateRace(aBuf, sizeof(aBuf), /* Backup */ true);
-		if(Execute(aBuf, pError, ErrorSize))
-			return true;
-		FormatCreateTeamrace(aBuf, sizeof(aBuf), "BLOB", /* Backup */ true);
-		if(Execute(aBuf, pError, ErrorSize))
-			return true;
-		FormatCreateSaves(aBuf, sizeof(aBuf), /* Backup */ true);
-		if(Execute(aBuf, pError, ErrorSize))
-			return true;
 		if(CreateTablesMMO(pError, ErrorSize))
 			return true;
 		m_Setup = false;

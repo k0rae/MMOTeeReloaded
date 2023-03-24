@@ -315,7 +315,7 @@ void CDummyBase::Snap(int SnappingClient)
 	if (NetworkClipped(SnappingClient))
 		return;
 
-	int SelfID = GameServer()->GetNextBotSnapID(SnappingClient);
+	int SelfID = GameServer()->m_MMOCore.GetNextBotSnapID(SnappingClient);
 	if (SelfID == -1)
 	{
 		dbg_msg("dummy", "cant get dummy snap ID for %d(%s). cheat?", SnappingClient, Server()->ClientName(SnappingClient));

@@ -837,5 +837,5 @@ void CGameContext::LogEvent(const char *Description, int ClientID)
 void CGameContext::ConCreateDummy(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
-	pSelf->CreateDummy(pSelf->GetPlayerChar(pResult->m_ClientID)->m_Pos, 0);
+	pSelf->m_MMOCore.CreateDummy(pSelf->GetPlayerChar(pResult->m_ClientID)->m_Pos, 0);
 }

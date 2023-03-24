@@ -11,14 +11,10 @@
 #include "player.h"
 
 #include "entities/character.h"
-#include "entities/door.h"
-#include "entities/dragger.h"
-#include "entities/gun.h"
-#include "entities/light.h"
 #include "entities/pickup.h"
-#include "entities/projectile.h"
 
 #include "mmo/dummies/dummy_base.h"
+#include "mmo/entities/pickup_job.h"
 
 IGameController::IGameController(class CGameContext *pGameServer)
 {
@@ -224,7 +220,9 @@ bool IGameController::OnQuadEntity(const char *pLayerName, vec2 Pivot, vec2 *pPo
 
 	// Handle mobs
 	if (!str_comp(pLayerName, "BotSlime"))
-		GameServer()->CreateDummy(Pos, DUMMY_TYPE_SLIME);
+		GameServer()->m_MMOCore.CreateDummy(Pos, DUMMY_TYPE_SLIME);
+	if (!str_comp(pLayerName, "Farm"))
+		new CPickupJob(&GameServer()->m_World, Pos, PICKUP_JOB_TYPE_FARM);
 
 	return false;
 }

@@ -503,3 +503,29 @@ CDummyBase *CGameWorld::IntersectDummy(vec2 Pos0, vec2 Pos1, float Radius, vec2 
 
 	return pClosest;
 }
+
+CEntity *CGameWorld::ClosestEntity(vec2 Pos, float Radius, int EntType, const CEntity *pNotThis)
+{
+	// Find other players
+	float ClosestRange = Radius * 2;
+	CCharacter *pClosest = 0;
+
+	CCharacter *p = (CCharacter *)GameServer()->m_World.FindFirst(EntType);
+	for(; p; p = (CCharacter *)p->TypeNext())
+	{
+		if(p == pNotThis)
+			continue;
+
+		float Len = distance(Pos, p->m_Pos);
+		if(Len < p->m_ProximityRadius + Radius)
+		{
+			if(Len < ClosestRange)
+			{
+				ClosestRange = Len;
+				pClosest = p;
+			}
+		}
+	}
+
+	return pClosest;
+}

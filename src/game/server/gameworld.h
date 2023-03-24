@@ -29,6 +29,7 @@ public:
 
 		ENTTYPE_DUMMY,
 		ENTTYPE_PICKUP_PHYS,
+		ENTTYPE_PICKUP_JOB,
 		NUM_ENTTYPES
 	};
 
@@ -93,6 +94,8 @@ public:
 			Returns a pointer to the closest hit or NULL of there is no intersection.
 	*/
 	CCharacter *IntersectCharacter(vec2 Pos0, vec2 Pos1, float Radius, vec2 &NewPos, const CCharacter *pNotThis = nullptr, int CollideWith = -1, const CCharacter *pThisOnly = nullptr);
+	CDummyBase *IntersectDummy(vec2 Pos0, vec2 Pos1, float Radius, vec2 &NewPos, const CCharacter *pNotThis = nullptr);
+	CEntity *ClosestEntity(vec2 Pos, float Radius, int EntType, const CEntity *pNotThis = 0x0);
 	/*
 		Function: ClosestCharacter
 			Finds the closest CCharacter to a specific point.
@@ -105,7 +108,6 @@ public:
 		Returns:
 			Returns a pointer to the closest CCharacter or NULL if no CCharacter is close enough.
 	*/
-	CDummyBase *IntersectDummy(vec2 Pos0, vec2 Pos1, float Radius, vec2 &NewPos, const CCharacter *pNotThis = nullptr);
 	CCharacter *ClosestCharacter(vec2 Pos, float Radius, const CEntity *pNotThis);
 
 	/*

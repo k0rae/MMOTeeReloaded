@@ -92,7 +92,7 @@ bool CAccountManager::LoginThread(IDbConnection *pSqlServer, const ISqlData *pGa
 	str_copy(pResult->m_AccData.m_aAccountName, pData->m_aLogin);
 
 	// Load inventory
-	str_copy(aBuf, "SELECT item_id, count, quality, data FROM u_inv WHERE id = ?");
+	str_copy(aBuf, "SELECT item_id, count, quality, data, type, rarity FROM u_inv WHERE id = ?");
 	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
 		return true;
 	pSqlServer->BindInt(1, pResult->m_AccData.m_ID);
@@ -102,11 +102,15 @@ bool CAccountManager::LoginThread(IDbConnection *pSqlServer, const ISqlData *pGa
 	End = false;
 	while(!pSqlServer->Step(&End, pError, ErrorSize) && !End)
 	{
-		Inventory.AddItem(
-			pSqlServer->GetInt(1),
-			pSqlServer->GetInt(2),
-			pSqlServer->GetInt(3),
-			pSqlServer->GetInt(4));
+		SInvItem Item;
+		Item.m_ID = pSqlServer->GetInt(1);
+		Item.m_Count = pSqlServer->GetInt(2);
+		Item.m_Quality = pSqlServer->GetInt(3);
+		Item.m_Data = pSqlServer->GetInt(4);
+		Item.m_Type = pSqlServer->GetInt(5);
+		Item.m_Rarity = pSqlServer->GetInt(6);
+
+		Inventory.AddItem(Item);
 	}
 
 	pResult->m_AccInv = Inventory;
@@ -169,7 +173,7 @@ bool CAccountManager::SaveThread(IDbConnection *pSqlServer, const ISqlData *pGam
 		return true;
 
 	// Insert items
-	str_copy(aBuf, "INSERT INTO u_inv(id, item_id, count, quality, data) VALUES (?, ?, ?, ?, ?)");
+	str_copy(aBuf, "INSERT INTO u_inv(id, item_id, count, quality, data, type, rarity) VALUES (?, ?, ?, ?, ?, ?, ?)");
 	for (SInvItem Item : pData->m_AccInventory.m_vItems)
 	{
 		if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
@@ -179,6 +183,8 @@ bool CAccountManager::SaveThread(IDbConnection *pSqlServer, const ISqlData *pGam
 		pSqlServer->BindInt(3, Item.m_Count);
 		pSqlServer->BindInt(4, Item.m_Quality);
 		pSqlServer->BindInt(5, Item.m_Data);
+		pSqlServer->BindInt(6, Item.m_Type);
+		pSqlServer->BindInt(7, Item.m_Rarity);
 
 		if(pSqlServer->ExecuteUpdate(&NumInserted, pError, ErrorSize))
 			return true;

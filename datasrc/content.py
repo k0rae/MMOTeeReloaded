@@ -20,12 +20,10 @@ class Image(Struct):
 		Struct.__init__(self, "CDataImage")
 		self.name = String(name)
 		self.filename = String(filename)
-		self.id = TextureHandle()
 
 class SpriteSet(Struct):
 	def __init__(self, _name="", image=None, gridx=0, gridy=0):
 		Struct.__init__(self, "CDataSpriteset")
-		self.image = Pointer(Image, image) # TODO
 		self.gridx = Int(gridx)
 		self.gridy = Int(gridy)
 

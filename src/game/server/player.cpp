@@ -823,7 +823,7 @@ void CPlayer::AddEXP(int EXP)
 	m_AccData.m_EXP += EXP;
 
 	bool LevelUpped = false;
-	int NeedEXP = GameServer()->GetExpForLevelUp(m_AccData.m_Level);
+	int NeedEXP = GameServer()->m_MMOCore.GetExpForLevelUp(m_AccData.m_Level);
 	while (m_AccData.m_EXP >= NeedEXP)
 	{
 		m_AccData.m_EXP -= NeedEXP;
@@ -831,7 +831,7 @@ void CPlayer::AddEXP(int EXP)
 
 		GameServer()->SendChatTarget(m_ClientID, "[LEVEL UP!] You got 2 skill points and 1 class point.");
 
-		NeedEXP = GameServer()->GetExpForLevelUp(m_AccData.m_Level);
+		NeedEXP = GameServer()->m_MMOCore.GetExpForLevelUp(m_AccData.m_Level);
 
 		LevelUpped = true;
 	}

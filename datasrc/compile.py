@@ -366,9 +366,6 @@ void RegisterGameUuids(CUuidManager *pManager)
 
 
 def gen_common_content_header():
-	# print some includes
-	print('#include <engine/graphics.h>')
-
 	# emit the type declarations
 	with open("datasrc/content.py", "rb") as content_file:
 		contentlines = content_file.readlines()

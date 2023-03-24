@@ -16,6 +16,7 @@
 #include <game/server/teams.h>
 
 #include <game/server/mmo/dummies/dummy_base.h>
+#include <game/server/mmo/entities/pickup_job.h>
 
 MACRO_ALLOC_POOL_ID_IMPL(CCharacter, MAX_CLIENTS)
 
@@ -391,7 +392,7 @@ void CCharacter::FireWeapon()
 	if(!g_Config.m_SvDeepfly && m_Core.m_ActiveWeapon == WEAPON_HAMMER && m_Core.m_DeepFrozen)
 		return;
 
-	// check if we gonna fire
+	// check if we're going to fire
 	bool WillFire = false;
 	if(CountInput(m_LatestPrevInput.m_Fire, m_LatestInput.m_Fire).m_Presses)
 		WillFire = true;
@@ -423,6 +424,15 @@ void CCharacter::FireWeapon()
 	{
 	case WEAPON_HAMMER:
 	{
+		// Check farming
+		CPickupJob *pPickup = (CPickupJob *)GameWorld()->ClosestEntity(m_Pos, 30.f, CGameWorld::ENTTYPE_PICKUP_JOB);
+		if (pPickup)
+		{
+			pPickup->Damage(m_pPlayer->GetCID());
+			m_ReloadTimer = Server()->TickSpeed();
+			return;
+		}
+
 		// reset objects Hit
 		m_NumObjectsHit = 0;
 		GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE, TeamMask());

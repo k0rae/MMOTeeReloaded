@@ -104,7 +104,8 @@ void CGameContext::Construct(int Resetting)
 	m_aDeleteTempfile[0] = 0;
 	m_TeeHistorianActive = false;
 
-	ClearBotSnapIDs();
+	m_MMOCore.Init(this);
+	m_MMOCore.ClearBotSnapIDs();
 }
 
 void CGameContext::Destruct(int Resetting)
@@ -914,57 +915,67 @@ void CGameContext::OnTick()
 	for(auto &pComponent : m_vpComponents)
 		pComponent->OnTick();
 
-	char aBroadcast[512];
-	char aExpProgress[10 * 2 + 1]; // +1 - is null termination
-	char aManaProgress[10 * 2 + 1];
-	char aHealthProgress[10 * 2 + 1];
-	char aArmorProgress[10 * 2 + 1];
 	for(int i = 0; i < MAX_PLAYERS; i++)
 	{
 		CPlayer *pPly = m_apPlayers[i];
-		if (!pPly)
+		if(!pPly)
 			continue;
 
 		m_apPlayers[i]->Tick();
 		m_apPlayers[i]->PostTick();
+	}
 
-		// Send broadcasts
-		if (!pPly->m_LoggedIn)
-			continue;
-		CCharacter *pChr = pPly->GetCharacter();
-		if (!pChr)
-			continue;
+	if (Server()->Tick() % 10 == 0)
+	{
+		char aBroadcast[512];
+		char aExpProgress[20 + 1]; // +1 - is null termination
+		char aManaProgress[20 + 1];
+		char aHealthProgress[20 + 1];
+		char aArmorProgress[20 + 1];
+		for(int i = 0; i < MAX_PLAYERS; i++)
+		{
+			CPlayer *pPly = m_apPlayers[i];
+			if (!pPly)
+				continue;
 
-		SAccountData &AccData = pPly->m_AccData;
+			// Send broadcasts
+			if (!pPly->m_LoggedIn)
+				continue;
+			CCharacter *pChr = pPly->GetCharacter();
+			if (!pChr)
+				continue;
 
-		int ExpForLevel = GetExpForLevelUp(AccData.m_Level);
-		int Health = pChr->GetHealth();
-		int Armor = pChr->GetArmor();
+			SAccountData &AccData = pPly->m_AccData;
 
-		GetProgressBar(aExpProgress, sizeof(aExpProgress), ':', ' ', AccData.m_EXP, ExpForLevel);
-		GetProgressBar(aManaProgress, sizeof(aManaProgress), ':', ' ', 0, 1);
-		GetProgressBar(aHealthProgress, sizeof(aHealthProgress), ':', ' ', Health, 10);
-		GetProgressBar(aArmorProgress, sizeof(aArmorProgress), ':', ' ', Armor, 10);
+			int ExpForLevel = m_MMOCore.GetExpForLevelUp(AccData.m_Level);
+			int Health = pChr->GetHealth();
+			int Armor = pChr->GetArmor();
 
-		str_format(aBroadcast, sizeof(aBroadcast), BC_LEFT(
-						       "\n\n\n\n"
-						       "Lv: %d | Exp: %d/%d\n" // Main stat
-						       "-------------------\n"
-						       "[%s] %d%% XP\n" // Exp progress bar
-						       "[%s] %d/%d MP\n" // Mana
-						       "-------------------\n"
-						       "[%s] %d/%d HP\n" // Health
-						       "[%s] %d/%d AP\n" // Armor
-						       "\n\n%s" // Important text
-						       ),
-			AccData.m_Level, AccData.m_EXP, ExpForLevel, // Main stat
-			aExpProgress, (int)((float)AccData.m_EXP / (float)ExpForLevel * 100), // Exp progress bar
-			aManaProgress, 0, 0, // Mana
-			aHealthProgress, Health, 10, // Health
-			aArmorProgress, Armor, 10, // Armor
-			(m_aClientsBroadcast[i].m_EndTick > Server()->Tick()) ? m_aClientsBroadcast[i].m_aText : "");
+			m_MMOCore.GetProgressBar(aExpProgress, sizeof(aExpProgress), ':', ' ', AccData.m_EXP, ExpForLevel);
+			m_MMOCore.GetProgressBar(aManaProgress, sizeof(aManaProgress), ':', ' ', 0, 1);
+			m_MMOCore.GetProgressBar(aHealthProgress, sizeof(aHealthProgress), ':', ' ', Health, 10);
+			m_MMOCore.GetProgressBar(aArmorProgress, sizeof(aArmorProgress), ':', ' ', Armor, 10);
 
-		SendBroadcast(aBroadcast, i);
+			str_format(aBroadcast, sizeof(aBroadcast), BC_LEFT(
+									   "\n\n\n\n"
+									   "Lv: %d | Exp: %d/%d\n" // Main stat
+									   "-------------------\n"
+									   "[%s] %d%% XP\n" // Exp progress bar
+									   "[%s] %d/%d MP\n" // Mana
+									   "-------------------\n"
+									   "[%s] %d/%d HP\n" // Health
+									   "[%s] %d/%d AP\n" // Armor
+									   "\n\n%s" // Important text
+									   ),
+				AccData.m_Level, AccData.m_EXP, ExpForLevel, // Main stat
+				aExpProgress, (int)((float)AccData.m_EXP / (float)ExpForLevel * 100), // Exp progress bar
+				aManaProgress, 0, 0, // Mana
+				aHealthProgress, Health, 10, // Health
+				aArmorProgress, Armor, 10, // Armor
+				(m_aClientsBroadcast[i].m_EndTick > Server()->Tick()) ? m_aClientsBroadcast[i].m_aText : "");
+
+			SendBroadcast(aBroadcast, i);
+		}
 	}
 
 	for(auto &pPlayer : m_apPlayers)
@@ -3476,7 +3487,7 @@ void CGameContext::OnSnap(int ClientID)
 		Server()->SendMsg(&Msg, MSGFLAG_RECORD | MSGFLAG_NOSEND, ClientID);
 	}
 
-	ClearBotSnapIDs();
+	m_MMOCore.ClearBotSnapIDs();
 
 	m_pController->Snap(ClientID);
 
@@ -4071,44 +4082,6 @@ void CGameContext::OnUpdatePlayerServerInfo(char *aBuf, int BufSize, int ID)
 		m_apPlayers[ID]->GetTeam());
 }
 
-int CGameContext::GetNextBotSnapID(int ClientID)
-{
-	int Prev = m_aBotSnapIDs[ClientID];
-	m_aBotSnapIDs[ClientID]++;
-	return ((Prev >= MAX_CLIENTS) ? -1 : Prev);
-}
-
-void CGameContext::ClearBotSnapIDs()
-{
-	for (int &i : m_aBotSnapIDs)
-		i = BOT_IDS_OFFSET;
-}
-
-void CGameContext::CreateDummy(vec2 Pos, int DummyType)
-{
-	CDummyBase *pNewDummy = new CDummyBase(&m_World, Pos, DummyType);
-
-	// 0 - name, 1 - clan, 2 - skin
-	static const char *s_aapDummyIndentsStrings[][3] = {
-		{"ULTRA STANDER", "", "greyfox"},
-		{"Slime", "MOB", "ghost"}
-	};
-
-	// 0 - use custom color, 1 - color body, 2 - color feet
-	static int s_aapDummyIndentsInts[][3] = {
-		{1, 0, 0},
-		{1, 5504798, 5504798}
-	};
-
-	pNewDummy->SetName(s_aapDummyIndentsStrings[DummyType][0]);
-	pNewDummy->SetClan(s_aapDummyIndentsStrings[DummyType][1]);
-	pNewDummy->SetTeeInfo(CTeeInfo(
-		s_aapDummyIndentsStrings[DummyType][2],
-		s_aapDummyIndentsInts[DummyType][0],
-		s_aapDummyIndentsInts[DummyType][1],
-		s_aapDummyIndentsInts[DummyType][2]));
-}
-
 void CGameContext::CreateEntitiesMMO()
 {
 	const CMapItemGroup *pGroup = m_Layers.EntityGroup();
@@ -4142,34 +4115,4 @@ void CGameContext::SendMMOBroadcast(int ClientID, float Seconds, const char *pTe
 {
 	m_aClientsBroadcast[ClientID].m_EndTick = Server()->Tick() + (int)(Server()->TickSpeed() * Seconds);
 	str_copy(m_aClientsBroadcast[ClientID].m_aText, pText);
-}
-
-int CGameContext::GetExpForLevelUp(int Level)
-{
-	int Exp = 250;
-
-	if(Level > 100) Exp = 700;
-	if(Level > 200) Exp = 1000;
-	if(Level > 300) Exp = 1500;
-	if(Level > 400) Exp = 2500;
-	if(Level > 500) Exp = 4000;
-	if(Level > 600) Exp = 6000;
-	if(Level > 700) Exp = 8000;
-	if(Level > 1000) Exp = 12000;
-	if(Level > 1100) Exp = 13000;
-	if(Level > 1200) Exp = 14000;
-
-	return Level * Exp;
-}
-
-void CGameContext::GetProgressBar(char *pStr, int StrSize, char Filler, char Empty, int Num, int MaxNum)
-{
-	int c = StrSize - 1;
-	float a = (float)Num / (float)MaxNum;
-	int b = (float)c * a;
-
-	pStr[StrSize - 1] = '\0';
-
-	for (int i = 0; i < c; i++)
-		pStr[i] = ((i + 1 <= b) ? Filler : Empty);
 }
