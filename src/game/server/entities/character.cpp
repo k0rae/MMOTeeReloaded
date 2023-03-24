@@ -15,6 +15,7 @@
 #include <game/server/player.h>
 #include <game/server/teams.h>
 
+#include <cstdlib>
 #include <game/server/mmo/dummies/dummy_base.h>
 #include <game/server/mmo/entities/pickup_job.h>
 
@@ -92,10 +93,18 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_TuneZone = Collision()->IsTune(Collision()->GetMapIndex(Pos));
 	m_TuneZoneOld = -1; // no zone leave msg on spawn
 	m_NeededFaketuning = 0; // reset fake tunings on respawn and send the client
-	SendZoneMsgs(); // we want a entermessage also on spawn
+	SendZoneMsgs(); // we want an enter message also on spawn
 	GameServer()->SendTuningParams(m_pPlayer->GetCID(), m_TuneZone);
 
 	Server()->StartRecord(m_pPlayer->GetCID());
+
+	// MMOTee stuff
+	m_MaxHealth = 10;
+	m_MaxArmor = 0;
+	m_MaxHealth += pPlayer->m_AccUp.m_Health * 40;
+
+	m_Health = m_MaxHealth;
+	m_Armor = m_MaxArmor;
 
 	return true;
 }
@@ -416,7 +425,27 @@ void CCharacter::FireWeapon()
 
 	// check for ammo
 	if(!m_Core.m_aWeapons[m_Core.m_ActiveWeapon].m_Ammo)
+	{
+		GameServer()->CreateSound(m_Pos, SOUND_WEAPON_NOAMMO);
+
+		float FireDelay;
+		GameServer()->Tuning()->Get(38 + m_Core.m_ActiveWeapon, &FireDelay);
+
+		float Mul = 30;
+		switch(m_Core.m_ActiveWeapon)
+		{
+		case WEAPON_GRENADE: Mul = 17; break;
+		case WEAPON_HAMMER: Mul = 2; break;
+		case WEAPON_GUN: Mul = 1; break;
+		case WEAPON_SHOTGUN: Mul = 10; break;
+		}
+
+		FireDelay -= m_pPlayer->m_AccUp.m_FireSpeed * Mul;
+		FireDelay = fmax(FireDelay, 0);
+		m_ReloadTimer = FireDelay * Server()->TickSpeed() / 1000;
+
 		return;
+	}
 
 	vec2 ProjStartPos = m_Pos + Direction * GetProximityRadius() * 0.75f;
 
@@ -626,13 +655,26 @@ void CCharacter::FireWeapon()
 
 	m_AttackTick = Server()->Tick();
 
+	if (m_Core.m_ActiveWeapon != WEAPON_HAMMER && m_Core.m_aWeapons[m_Core.m_ActiveWeapon].m_Ammo > 0)
+		m_Core.m_aWeapons[m_Core.m_ActiveWeapon].m_Ammo--;
+	m_Core.m_aWeapons[m_Core.m_ActiveWeapon].m_AmmoRegenStart = Server()->Tick() + Server()->TickSpeed();
+
 	if(!m_ReloadTimer)
 	{
 		float FireDelay;
-		if(!m_TuneZone)
-			GameServer()->Tuning()->Get(38 + m_Core.m_ActiveWeapon, &FireDelay);
-		else
-			GameServer()->TuningList()[m_TuneZone].Get(38 + m_Core.m_ActiveWeapon, &FireDelay);
+		GameServer()->Tuning()->Get(38 + m_Core.m_ActiveWeapon, &FireDelay);
+
+		float Mul = 30;
+		switch(m_Core.m_ActiveWeapon)
+		{
+		case WEAPON_GRENADE: Mul = 17; break;
+		case WEAPON_HAMMER: Mul = 2; break;
+		case WEAPON_GUN: Mul = 1; break;
+		case WEAPON_SHOTGUN: Mul = 10; break;
+		}
+
+		FireDelay -= m_pPlayer->m_AccUp.m_FireSpeed * Mul;
+		FireDelay = fmax(FireDelay, 0);
 		m_ReloadTimer = FireDelay * Server()->TickSpeed() / 1000;
 	}
 }
@@ -645,6 +687,16 @@ void CCharacter::HandleWeapons()
 
 	if(m_PainSoundTimer > 0)
 		m_PainSoundTimer--;
+
+	// Check for ammo regen
+	int Weapon = m_Core.m_ActiveWeapon;
+	int AmmoRegen = m_pPlayer->m_AccUp.m_AmmoRegen;
+	float RegenTime = fmax(0.1f, 2 - AmmoRegen / 50.f);
+	int Ammo = m_Core.m_aWeapons[Weapon].m_Ammo;
+	int MaxAmmo = m_Core.m_aWeapons[Weapon].m_MaxAmmo;
+	int Tick = Server()->Tick();
+	if(Weapon != WEAPON_HAMMER && Tick > m_Core.m_aWeapons[Weapon].m_AmmoRegenStart && Tick % (int)(Server()->TickSpeed() * RegenTime) == 0 && Ammo < MaxAmmo)
+		m_Core.m_aWeapons[Weapon].m_Ammo++;
 
 	// check reload timer
 	if(m_ReloadTimer)
@@ -787,7 +839,7 @@ void CCharacter::Tick()
 
 	DDRacePostCoreTick();
 
-	// Previnput
+	// Prev input
 	m_PrevInput = m_Input;
 
 	m_PrevPos = m_Core.m_Pos;
@@ -901,23 +953,21 @@ void CCharacter::TickPaused()
 	++m_ReckoningTick;
 	if(m_LastAction != -1)
 		++m_LastAction;
-	if(m_Core.m_aWeapons[m_Core.m_ActiveWeapon].m_AmmoRegenStart > -1)
-		++m_Core.m_aWeapons[m_Core.m_ActiveWeapon].m_AmmoRegenStart;
 	if(m_EmoteStop > -1)
 		++m_EmoteStop;
 }
 
 bool CCharacter::IncreaseHealth(int Amount)
 {
-	m_Health += Amount;
+	m_Health = clamp(m_Health + Amount, 0, m_MaxHealth);
+
 	return true;
 }
 
 bool CCharacter::IncreaseArmor(int Amount)
 {
-	if(m_Armor >= 10)
-		return false;
-	m_Armor = clamp(m_Armor + Amount, 0, 10);
+	m_Armor = clamp(m_Armor + Amount, 0, m_MaxArmor);
+
 	return true;
 }
 
@@ -962,6 +1012,9 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 {
 	if (m_NoDamage)
 		return false;
+
+	if (From >= 0)
+		Dmg += MMOCore()->GetPlusDamage(From);
 
 	if(Dmg)
 	{
@@ -1024,8 +1077,7 @@ void CCharacter::SnapCharacter(int SnappingClient, int ID)
 {
 	int SnappingClientVersion = GameServer()->GetClientVersion(SnappingClient);
 	CCharacterCore *pCore;
-	int Tick, Emote = m_EmoteType, Weapon = m_Core.m_ActiveWeapon, AmmoCount = 0,
-		  Health = 0, Armor = 0;
+	int Tick, Emote = m_EmoteType, Weapon = m_Core.m_ActiveWeapon, AmmoCount = m_Core.m_aWeapons[Weapon].m_Ammo, Health = 0, Armor = 0;
 	if(!m_ReckoningTick || GameServer()->m_World.m_Paused)
 	{
 		Tick = 0;
@@ -1782,7 +1834,7 @@ bool CCharacter::UnFreeze()
 	return false;
 }
 
-void CCharacter::GiveWeapon(int Weapon, bool Remove)
+void CCharacter::GiveWeapon(int Weapon, bool Remove, int Ammo)
 {
 	if(Weapon == WEAPON_NINJA)
 	{
@@ -1804,6 +1856,9 @@ void CCharacter::GiveWeapon(int Weapon, bool Remove)
 	}
 
 	m_Core.m_aWeapons[Weapon].m_Got = !Remove;
+	m_Core.m_aWeapons[Weapon].m_AmmoRegenStart = 0;
+	m_Core.m_aWeapons[Weapon].m_MaxAmmo = 10 + (m_pPlayer->m_AccUp.m_Ammo * 5);
+	m_Core.m_aWeapons[Weapon].m_Ammo = m_Core.m_aWeapons[Weapon].m_MaxAmmo;
 }
 
 void CCharacter::GiveAllWeapons()

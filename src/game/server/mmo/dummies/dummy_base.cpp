@@ -100,6 +100,9 @@ void CDummyBase::TakeDamage(vec2 Force, int Damage, int From, int Weapon)
 	if (!m_Alive)
 		return;
 
+	if (From >= 0)
+		Damage += MMOCore()->GetPlusDamage(From);
+
 	if (Damage)
 	{
 		// Emote

@@ -54,6 +54,8 @@ public:
 
 	int _GetMinerLevelID(int Level);
 	int GetRandomMinerItemByLevel(int Level);
+
+	int GetPlusDamage(int ClientID);
 };
 
 #endif // GAME_SERVER_MMO_MMO_CORE_H

@@ -316,12 +316,8 @@ int IGameController::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *
 
 void IGameController::OnCharacterSpawn(class CCharacter *pChr)
 {
-	// default health
-	pChr->IncreaseHealth(10);
-
 	// give default weapons
 	pChr->GiveWeapon(WEAPON_HAMMER);
-	pChr->GiveWeapon(WEAPON_GUN);
 }
 
 void IGameController::HandleCharacterTiles(CCharacter *pChr, int MapIndex)
@@ -424,8 +420,6 @@ void IGameController::Snap(int SnappingClient)
 		GAMEINFOFLAG_ENTITIES_DDRACE;
 	pGameInfoEx->m_Flags2 =
 		GAMEINFOFLAG2_HUD_DDRACE |
-		GAMEINFOFLAG2_HUD_HEALTH_ARMOR |
-		GAMEINFOFLAG2_HUD_AMMO |
 		GAMEINFOFLAG2_NO_WEAK_HOOK;
 	pGameInfoEx->m_Version = GAMEINFO_CURVERSION;
 

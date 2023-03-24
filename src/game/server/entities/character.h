@@ -5,6 +5,8 @@
 
 #include <game/server/entity.h>
 
+#include <utility>
+
 class CGameTeams;
 class CGameWorld;
 struct CAntibotCharacterData;
@@ -23,8 +25,6 @@ enum
 class CCharacter : public CEntity
 {
 	MACRO_ALLOC_POOL_ID()
-
-	friend class CSaveTee; // need to use core
 
 public:
 	CCharacter(CGameWorld *pWorld, CNetObj_PlayerInput LastInput);
@@ -70,7 +70,7 @@ public:
 	bool IncreaseHealth(int Amount);
 	bool IncreaseArmor(int Amount);
 
-	void GiveWeapon(int Weapon, bool Remove = false);
+	void GiveWeapon(int Weapon, bool Remove = false, int Ammo = 10);
 	void GiveNinja();
 	void RemoveNinja();
 	void SetEndlessHook(bool Enable);
@@ -127,6 +127,8 @@ private:
 
 	int m_Health;
 	int m_Armor;
+	int m_MaxHealth;
+	int m_MaxArmor;
 
 	// the player core for the physics
 	CCharacterCore m_Core;
@@ -219,8 +221,12 @@ public:
 	void SetArmor(int Armor) { m_Armor = Armor; }
 	int GetHealth() { return m_Health; }
 	void SetHealth(int Health) { m_Health = Health; }
+	int GetMaxArmor() { return m_MaxArmor; }
+	void SetMaxArmor(int Armor) { m_MaxArmor = Armor; }
+	int GetMaxHealth() { return m_MaxHealth; }
+	void SetMaxHealth(int Health) { m_MaxHealth = Health; }
 	CCharacterCore GetCore() { return m_Core; }
-	void SetCore(CCharacterCore Core) { m_Core = Core; }
+	void SetCore(CCharacterCore Core) { m_Core = std::move(Core); }
 	CCharacterCore *Core() { return &m_Core; }
 	bool GetWeaponGot(int Type) { return m_Core.m_aWeapons[Type].m_Got; }
 	void SetWeaponGot(int Type, bool Value) { m_Core.m_aWeapons[Type].m_Got = Value; }

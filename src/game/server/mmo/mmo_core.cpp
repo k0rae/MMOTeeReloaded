@@ -325,3 +325,11 @@ int CMMOCore::GetRandomMinerItemByLevel(int Level)
 	default: return ITEM_ASTRALIUM_ORE;
 	}
 }
+
+int CMMOCore::GetPlusDamage(int ClientID)
+{
+	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+	int PlusDamage = pPly->m_AccUp.m_Damage;
+
+	return PlusDamage;
+}

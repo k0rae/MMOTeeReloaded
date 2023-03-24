@@ -42,7 +42,7 @@ void IDbConnection::FormatCreateInventories(char *aBuf, unsigned int BufferSize)
 {
 	str_format(aBuf, BufferSize,
 		"CREATE TABLE IF NOT EXISTS u_inv ("
-		"  user_id INTEGER NOT NULL PRIMARY KEY, "
+		"  user_id INTEGER NOT NULL, "
 		"  item_id INTEGER NOT NULL, "
 		"  rarity INTEGER NOT NULL, "
 		"  type INTEGER NOT NULL, "

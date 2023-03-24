@@ -928,10 +928,13 @@ void CGameContext::OnTick()
 	if (Server()->Tick() % 10 == 0)
 	{
 		char aBroadcast[512];
-		char aExpProgress[20 + 1]; // +1 - is null termination
+		// +1 - is null termination
+		char aExpProgress[20 + 1];
 		char aManaProgress[20 + 1];
 		char aHealthProgress[20 + 1];
 		char aArmorProgress[20 + 1];
+		char aAmmoProgress[20 + 1];
+
 		for(int i = 0; i < MAX_PLAYERS; i++)
 		{
 			CPlayer *pPly = m_apPlayers[i];
@@ -950,14 +953,18 @@ void CGameContext::OnTick()
 			int ExpForLevel = m_MMOCore.GetExpForLevelUp(AccData.m_Level);
 			int Health = pChr->GetHealth();
 			int Armor = pChr->GetArmor();
+			int Weapon = pChr->GetCore().m_ActiveWeapon;
+			int Ammo = (Weapon != WEAPON_HAMMER) ? pChr->GetCore().m_aWeapons[Weapon].m_Ammo : 1;
+			int MaxAmmo = (Weapon != WEAPON_HAMMER) ? pChr->GetCore().m_aWeapons[Weapon].m_MaxAmmo : 1;
 
 			m_MMOCore.GetProgressBar(aExpProgress, sizeof(aExpProgress), ':', ' ', AccData.m_EXP, ExpForLevel);
 			m_MMOCore.GetProgressBar(aManaProgress, sizeof(aManaProgress), ':', ' ', 0, 1);
-			m_MMOCore.GetProgressBar(aHealthProgress, sizeof(aHealthProgress), ':', ' ', Health, 10);
-			m_MMOCore.GetProgressBar(aArmorProgress, sizeof(aArmorProgress), ':', ' ', Armor, 10);
+			m_MMOCore.GetProgressBar(aHealthProgress, sizeof(aHealthProgress), ':', ' ', Health, pChr->GetMaxHealth());
+			m_MMOCore.GetProgressBar(aArmorProgress, sizeof(aArmorProgress), ':', ' ', Armor, pChr->GetMaxArmor());
+			m_MMOCore.GetProgressBar(aAmmoProgress, sizeof(aAmmoProgress), ':', ' ', Ammo, MaxAmmo);
 
 			str_format(aBroadcast, sizeof(aBroadcast), BC_LEFT(
-									   "\n\n\n\n"
+									   "\n\n\n"
 									   "Lv: %d | Exp: %d/%d\n" // Main stat
 									   "-------------------\n"
 									   "[%s] %d%% XP\n" // Exp progress bar
@@ -965,13 +972,15 @@ void CGameContext::OnTick()
 									   "-------------------\n"
 									   "[%s] %d/%d HP\n" // Health
 									   "[%s] %d/%d AP\n" // Armor
+									   "[%s] %d/%d AM\n" // Ammo
 									   "\n\n%s" // Important text
 									   ),
 				AccData.m_Level, AccData.m_EXP, ExpForLevel, // Main stat
 				aExpProgress, (int)((float)AccData.m_EXP / (float)ExpForLevel * 100), // Exp progress bar
 				aManaProgress, 0, 0, // Mana
-				aHealthProgress, Health, 10, // Health
-				aArmorProgress, Armor, 10, // Armor
+				aHealthProgress, Health, pChr->GetMaxHealth(), // Health
+				aArmorProgress, Armor, pChr->GetMaxArmor(), // Armor
+				aAmmoProgress, Ammo, MaxAmmo, // Ammo
 				(m_aClientsBroadcast[i].m_EndTick > Server()->Tick()) ? m_aClientsBroadcast[i].m_aText : "");
 
 			SendBroadcast(aBroadcast, i);
