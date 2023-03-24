@@ -16,13 +16,15 @@ bool CAccountManager::RegisterThread(IDbConnection *pSqlServer, const ISqlData *
 	SAccountRegisterResult *pResult = dynamic_cast<SAccountRegisterResult *>(pGameData->m_pResult.get());
 
 	char aBuf[1024];
+	int NumInserted;
+	bool End;
 
+	// Check for existed login
 	str_copy(aBuf, "SELECT COUNT(*) AS logins FROM users WHERE name = ?");
 	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
 		return true;
 	pSqlServer->BindString(1, pData->m_aLogin);
 
-	bool End;
 	if(pSqlServer->Step(&End, pError, ErrorSize))
 		return true;
 	if(pSqlServer->GetInt(1) != 0)
@@ -31,15 +33,34 @@ bool CAccountManager::RegisterThread(IDbConnection *pSqlServer, const ISqlData *
 		return false;
 	}
 
-	str_copy(aBuf, "INSERT INTO users(name, password) VALUES(?, ?);");
+	// Create new user
+	str_copy(aBuf, "INSERT INTO users(name, password) VALUES(?, ?)");
 
 	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
 		return true;
 	pSqlServer->BindString(1, pData->m_aLogin);
 	pSqlServer->BindString(2, pData->m_aPasswordHash);
-	pSqlServer->Print();
 
-	int NumInserted;
+	if(pSqlServer->ExecuteUpdate(&NumInserted, pError, ErrorSize))
+		return true;
+
+	// Get ID by name
+	str_copy(aBuf, "SELECT id FROM users WHERE name = ?");
+	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
+		return true;
+	pSqlServer->BindString(1, pData->m_aLogin);
+
+	if(pSqlServer->Step(&End, pError, ErrorSize))
+		return true;
+	int UserID = pSqlServer->GetInt(1);
+
+	// Create new upgrade
+	str_copy(aBuf, "INSERT INTO u_upgr(user_id) VALUES(?)");
+
+	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
+		return true;
+	pSqlServer->BindInt(1, UserID);
+
 	if(pSqlServer->ExecuteUpdate(&NumInserted, pError, ErrorSize))
 		return true;
 
@@ -92,7 +113,7 @@ bool CAccountManager::LoginThread(IDbConnection *pSqlServer, const ISqlData *pGa
 	str_copy(pResult->m_AccData.m_aAccountName, pData->m_aLogin);
 
 	// Load inventory
-	str_copy(aBuf, "SELECT item_id, count, quality, data, type, rarity FROM u_inv WHERE id = ?");
+	str_copy(aBuf, "SELECT item_id, count, quality, data, type, rarity FROM u_inv WHERE user_id = ?");
 	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
 		return true;
 	pSqlServer->BindInt(1, pResult->m_AccData.m_ID);
@@ -132,6 +153,37 @@ bool CAccountManager::LoginThread(IDbConnection *pSqlServer, const ISqlData *pGa
 	}
 
 	pResult->m_AccWorks = Works;
+
+	// Load upgrades
+	SAccountUpgrade Upgrades;
+
+	str_copy(aBuf, "SELECT upgrade_point, skill_point, damage, fire_speed, health, health_regen, ammo, ammo_regen, spray, mana FROM u_upgr WHERE user_id = ?");
+	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
+		return true;
+	pSqlServer->BindInt(1, pResult->m_AccData.m_ID);
+
+	if(pSqlServer->Step(&End, pError, ErrorSize))
+		return true;
+	if(End)
+	{
+		str_copy(pResult->m_aMessage, "Error while logging in account. Contact administrator.");
+		return false;
+	}
+
+	Upgrades.m_UpgradePoints = pSqlServer->GetInt(1);
+	Upgrades.m_SkillPoints = pSqlServer->GetInt(2);
+	Upgrades.m_Damage = pSqlServer->GetInt(3);
+	Upgrades.m_FireSpeed = pSqlServer->GetInt(4);
+	Upgrades.m_Health = pSqlServer->GetInt(5);
+	Upgrades.m_HealthRegen = pSqlServer->GetInt(6);
+	Upgrades.m_Ammo = pSqlServer->GetInt(7);
+	Upgrades.m_AmmoRegen = pSqlServer->GetInt(8);
+	Upgrades.m_Spray = pSqlServer->GetInt(9);
+	Upgrades.m_Mana = pSqlServer->GetInt(10);
+
+	pResult->m_AccUp = Upgrades;
+
+	// All ok
 	pResult->m_State = SAccountResultBase::STATE_SUCCESSFUL;
 	str_copy(pResult->m_aMessage, "You successfully logged to account.");
 
@@ -181,7 +233,7 @@ bool CAccountManager::SaveThread(IDbConnection *pSqlServer, const ISqlData *pGam
 		return true;
 
 	// Clean old inventory
-	str_copy(aBuf, "DELETE FROM u_inv WHERE id = ?");
+	str_copy(aBuf, "DELETE FROM u_inv WHERE user_id = ?");
 
 	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
 		return true;
@@ -191,7 +243,7 @@ bool CAccountManager::SaveThread(IDbConnection *pSqlServer, const ISqlData *pGam
 		return true;
 
 	// Insert items
-	str_copy(aBuf, "INSERT INTO u_inv(id, item_id, count, quality, data, type, rarity) VALUES (?, ?, ?, ?, ?, ?, ?)");
+	str_copy(aBuf, "INSERT INTO u_inv(user_id, item_id, count, quality, data, type, rarity) VALUES (?, ?, ?, ?, ?, ?, ?)");
 	for (SInvItem Item : pData->m_AccInv.m_vItems)
 	{
 		if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
@@ -219,7 +271,7 @@ bool CAccountManager::SaveThread(IDbConnection *pSqlServer, const ISqlData *pGam
 		return true;
 
 	// Insert work data
-	str_copy(aBuf, "INSERT INTO u_inv(user_id, work_id, exp, level) VALUES (?, ?, ?, ?)");
+	str_copy(aBuf, "INSERT INTO u_works(user_id, work_id, exp, level) VALUES (?, ?, ?, ?)");
 	for (int i = 0; i < std::size(pData->m_AccWorks.m_aWorks); i++)
 	{
 		const SWorkData &Work = pData->m_AccWorks.m_aWorks[i];
@@ -239,6 +291,19 @@ bool CAccountManager::SaveThread(IDbConnection *pSqlServer, const ISqlData *pGam
 			return true;
 	}
 
+	// Update upgrades data
+	str_copy(aBuf, "UPDATE u_upgr SET upgrade_point = ?, skill_point = ?, damage = ?, fire_speed = ?, health = ?, health_regen = ?, ammo = ?, ammo_regen = ?, spray = ?, mana = ? WHERE user_id = ?");
+	if(pSqlServer->PrepareStatement(aBuf, pError, ErrorSize))
+		return true;
+	for (int i = 0; i < UPGRADES_NUM; i++)
+	{
+		pSqlServer->BindInt(i + 1, pData->m_AccUp.get_by(i));
+	}
+	pSqlServer->BindInt(UPGRADES_NUM + 1, pData->m_AccData.m_ID);
+
+	if(pSqlServer->ExecuteUpdate(&NumInserted, pError, ErrorSize))
+		return true;
+
 	return false;
 }
 
@@ -252,6 +317,7 @@ void CAccountManager::Save(int ClientID)
 	pRequest->m_AccData = pPly->m_AccData;
 	pRequest->m_AccInv = pPly->m_AccInv;
 	pRequest->m_AccWorks = pPly->m_AccWorks;
+	pRequest->m_AccUp = pPly->m_AccUp;
 	DBPool()->Execute(SaveThread, std::move(pRequest), "Save");
 }
 
@@ -376,6 +442,7 @@ void CAccountManager::OnTick()
 			pPly->m_AccData = pResult->m_AccData;
 			pPly->m_AccInv = pResult->m_AccInv;
 			pPly->m_AccWorks = pResult->m_AccWorks;
+			pPly->m_AccUp = pResult->m_AccUp;
 		}
 
 		m_vpLoginResults.erase(m_vpLoginResults.begin() + i);
@@ -385,4 +452,9 @@ void CAccountManager::OnTick()
 	if (Server()->Tick() % (Server()->TickSpeed() * 60) == 0)
 		for (int i = 0; i < MAX_PLAYERS; i++)
 			Save(i);
+}
+
+void CAccountManager::OnPlayerLeft(int ClientID)
+{
+	Save(ClientID);
 }

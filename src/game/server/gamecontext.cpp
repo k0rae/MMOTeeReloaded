@@ -1614,7 +1614,8 @@ void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 {
 	LogEvent("Disconnect", ClientID);
 
-	m_AccountManager.Save(ClientID);
+	for (auto &pComponent : m_vpComponents)
+		pComponent->OnPlayerLeft(ClientID);
 
 	AbortVoteKickOnDisconnect(ClientID);
 	m_pController->OnPlayerDisconnect(m_apPlayers[ClientID], pReason);
@@ -2071,6 +2072,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			}
 
 			m_pController->DoTeamChange(pPlayer, pMsg->m_Team);
+			m_VoteMenu.SetMenu(ClientID, MENU_MAIN);
 		}
 		else if(MsgID == NETMSGTYPE_CL_ISDDNETLEGACY)
 		{

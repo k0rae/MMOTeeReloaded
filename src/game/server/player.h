@@ -222,6 +222,7 @@ public:
 	SAccountData m_AccData;
 	CAccountInventory m_AccInv;
 	SAccountWorksData m_AccWorks;
+	SAccountUpgrade m_AccUp;
 	bool m_LoggedIn;
 
 	void AddEXP(int EXP);

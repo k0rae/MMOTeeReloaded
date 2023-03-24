@@ -31,6 +31,7 @@ class CAccountManager : public CServerComponent
 public:
 	virtual void OnConsoleInit() override;
 	virtual void OnTick() override;
+	virtual void OnPlayerLeft(int ClientID) override;
 
 	void Register(int ClientID, const char *pName, const char *pPasswordHash);
 	void Login(int ClientID, const char *pName, const char *pPasswordHash);
@@ -83,6 +84,7 @@ struct SAccountLoginResult : SAccountResultBase
 	SAccountData m_AccData;
 	CAccountInventory m_AccInv;
 	SAccountWorksData m_AccWorks;
+	SAccountUpgrade m_AccUp;
 };
 
 struct SAccountLoginRequest : ISqlData
@@ -107,6 +109,7 @@ struct SAccountSaveRequest : ISqlData
 	SAccountData m_AccData;
 	CAccountInventory m_AccInv;
 	SAccountWorksData m_AccWorks;
+	SAccountUpgrade m_AccUp;
 };
 
 #endif // GAME_SERVER_MMO_ACCOUNT_MANAGER_H

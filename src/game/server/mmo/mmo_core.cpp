@@ -258,3 +258,27 @@ void CMMOCore::UseItem(int ClientID, int ItemID, int Count)
 	// Delete items from inventory
 	pPly->m_AccInv.RemItem(ItemID, Count);
 }
+
+const char *CMMOCore::GetUpgradeName(int UpgradeID)
+{
+	switch(UpgradeID)
+	{
+	case UPGRADE_POINTS: return "Upgrade points";
+	case UPGRADE_SKILL_POINTS: return "Skill points";
+	case UPGRADE_DAMAGE: return "Damage";
+	case UPGRADE_FIRE_SPEED: return "Fire speed";
+	case UPGRADE_HEALTH: return "Health";
+	case UPGRADE_HEALTH_REGEN: return "Health regen";
+	case UPGRADE_AMMO: return "Ammo";
+	case UPGRADE_AMMO_REGEN: return "Ammo regen";
+	case UPGRADE_SPRAY: return "Spray";
+	case UPGRADE_MANA: return "Mana";
+	}
+
+	return "[UNKNOWN UPGRADE]";
+}
+
+int CMMOCore::GetUpgradeCost(int UpgradeID)
+{
+	return 1;
+}

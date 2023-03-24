@@ -31,6 +31,7 @@ public:
 	CVoteMenu();
 
 	virtual void OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame) override;
+	virtual void OnPlayerLeft(int ClientID) override;
 
 	void SetMenu(int ClientID, int MenuID) { m_aPlayersMenu[ClientID] = MenuID; };
 

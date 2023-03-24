@@ -7,7 +7,7 @@
 CVoteMenu::CVoteMenu()
 {
 	for (int &i : m_aPlayersMenu)
-		i = MENU_MAIN;
+		i = MENU_NO_AUTH;
 }
 
 void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
@@ -69,6 +69,34 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 		RebuildMenu(ClientID);
 		MMOCore()->UseItem(ClientID, Value1, Count);
 	}
+	else if (sscanf_s(aCmd, "upgr%d", &Value1))
+	{
+		int Count = 1;
+		try
+		{
+			Count = std::stoi(pMsg->m_pReason);
+		} catch(std::exception &e) {}
+
+		CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+
+		int Cost = MMOCore()->GetUpgradeCost(Value1) * Count;
+		if (Cost > pPly->m_AccUp.m_UpgradePoints)
+		{
+			GameServer()->SendChatTarget(ClientID, "You don't have needed count of upgrade points");
+			return;
+		}
+
+		pPly->m_AccUp.m_UpgradePoints -= Cost;
+		pPly->m_AccUp[Value1] += Count;
+
+		RebuildMenu(ClientID);
+	}
+}
+
+void CVoteMenu::OnPlayerLeft(int ClientID)
+{
+	ClearVotes(ClientID);
+	m_aPlayersMenu[ClientID] = MENU_NO_AUTH;
 }
 
 void CVoteMenu::AddMenuVote(int ClientID, const char *pCmd, const char *pDesc)
@@ -110,7 +138,12 @@ void CVoteMenu::RebuildMenu(int ClientID)
 
 	ClearVotes(ClientID);
 
-	if (Menu == MENU_MAIN)
+	if (Menu == MENU_NO_AUTH)
+	{
+		AddMenuVote(ClientID, "null", "Register and login if you want play");
+		AddMenuVote(ClientID, "null", "After login press 'Join game' button");
+	}
+	else if (Menu == MENU_MAIN)
 	{
 		AddMenuVote(ClientID, "null", "------------ Your stats");
 		char aBuf[128];
@@ -159,6 +192,24 @@ void CVoteMenu::RebuildMenu(int ClientID)
 	else if (Menu == MENU_UPGRADE)
 	{
 		AddMenuVote(ClientID, "null", "------------ Upgrades");
+		char aBuf[128];
+		char aCmd[64];
+
+		str_format(aBuf, sizeof(aBuf), "► Upgrade points: %d", pPly->m_AccUp.m_UpgradePoints);
+		AddMenuVote(ClientID, "null", aBuf);
+
+		for (int i = UPGRADE_DAMAGE; i < UPGRADES_NUM; i++)
+		{
+			str_format(aBuf, sizeof(aBuf), "☞ [%d] %s", pPly->m_AccUp[i], MMOCore()->GetUpgradeName(i));
+			str_format(aCmd, sizeof(aCmd), "upgr%d", i);
+			AddMenuVote(ClientID, aCmd, aBuf);
+		}
+
+		AddBack(ClientID, MENU_MAIN);
+	}
+	else
+	{
+		AddMenuVote(ClientID, "null", "Woah, how you got here? O.o");
 
 		AddBack(ClientID, MENU_MAIN);
 	}

@@ -16,6 +16,7 @@ bool IDbConnection::CreateTablesMMO(char *pError, int ErrorSize)
 	CREATE_TABLE(Accounts)
 	CREATE_TABLE(Inventories)
 	CREATE_TABLE(Works)
+	CREATE_TABLE(Upgrades)
 
 #undef CREATE_TABLE
 
@@ -41,7 +42,7 @@ void IDbConnection::FormatCreateInventories(char *aBuf, unsigned int BufferSize)
 {
 	str_format(aBuf, BufferSize,
 		"CREATE TABLE IF NOT EXISTS u_inv ("
-		"  id INTEGER NOT NULL PRIMARY KEY, "
+		"  user_id INTEGER NOT NULL PRIMARY KEY, "
 		"  item_id INTEGER NOT NULL, "
 		"  rarity INTEGER NOT NULL, "
 		"  type INTEGER NOT NULL, "
@@ -59,5 +60,23 @@ void IDbConnection::FormatCreateWorks(char *aBuf, unsigned int BufferSize)
 		"  work_id INTEGER NOT NULL, "
 		"  exp INTEGER NOT NULL DEFAULT 0, "
 		"  level INTEGER NOT NULL DEFAULT 1"
+		")");
+}
+
+void IDbConnection::FormatCreateUpgrades(char *aBuf, unsigned int BufferSize)
+{
+	str_format(aBuf, BufferSize,
+		"CREATE TABLE IF NOT EXISTS u_upgr ("
+		"  user_id INTEGER NOT NULL PRIMARY KEY, "
+		"  upgrade_point INTEGER NOT NULL DEFAULT 0, "
+		"  skill_point INTEGER NOT NULL DEFAULT 0, "
+		"  damage INTEGER NOT NULL DEFAULT 0, "
+		"  fire_speed INTEGER NOT NULL DEFAULT 0, "
+		"  health INTEGER NOT NULL DEFAULT 0, "
+		"  health_regen INTEGER NOT NULL DEFAULT 0, "
+		"  ammo INTEGER NOT NULL DEFAULT 0, "
+		"  ammo_regen INTEGER NOT NULL DEFAULT 0, "
+		"  spray INTEGER NOT NULL DEFAULT 0, "
+		"  mana INTEGER NOT NULL DEFAULT 0"
 		")");
 }

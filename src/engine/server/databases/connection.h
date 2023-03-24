@@ -103,6 +103,7 @@ protected:
 	void FormatCreateAccounts(char *aBuf, unsigned int BufferSize);
 	void FormatCreateInventories(char *aBuf, unsigned int BufferSize);
 	void FormatCreateWorks(char *aBuf, unsigned int BufferSize);
+	void FormatCreateUpgrades(char *aBuf, unsigned int BufferSize);
 };
 
 bool MysqlAvailable();

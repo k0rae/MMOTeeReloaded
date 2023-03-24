@@ -108,4 +108,69 @@ public:
 	}
 };
 
+struct SAccountUpgrade
+{
+	int m_UpgradePoints;
+	int m_SkillPoints;
+	int m_Damage;
+	int m_FireSpeed;
+	int m_Health;
+	int m_HealthRegen;
+	int m_Ammo;
+	int m_AmmoRegen;
+	int m_Spray;
+	int m_Mana;
+
+	int &operator[](int Index)
+	{
+		switch(Index)
+		{
+		case 0: return m_UpgradePoints;
+		case 1: return m_SkillPoints;
+		case 2: return m_Damage;
+		case 3: return m_FireSpeed;
+		case 4: return m_Health;
+		case 5: return m_HealthRegen;
+		case 6: return m_Ammo;
+		case 7: return m_AmmoRegen;
+		case 8: return m_Spray;
+		case 9: return m_Mana;
+		default: return m_UpgradePoints;
+		}
+	}
+
+	int get_by(int Index) const
+	{
+		switch(Index)
+		{
+		case 0: return m_UpgradePoints;
+		case 1: return m_SkillPoints;
+		case 2: return m_Damage;
+		case 3: return m_FireSpeed;
+		case 4: return m_Health;
+		case 5: return m_HealthRegen;
+		case 6: return m_Ammo;
+		case 7: return m_AmmoRegen;
+		case 8: return m_Spray;
+		case 9: return m_Mana;
+		default: return m_UpgradePoints;
+		}
+	}
+};
+
+enum
+{
+	UPGRADE_POINTS,
+	UPGRADE_SKILL_POINTS,
+	UPGRADE_DAMAGE,
+	UPGRADE_FIRE_SPEED,
+	UPGRADE_HEALTH,
+	UPGRADE_HEALTH_REGEN,
+	UPGRADE_AMMO,
+	UPGRADE_AMMO_REGEN,
+	UPGRADE_SPRAY,
+	UPGRADE_MANA,
+	UPGRADES_NUM
+};
+
 #endif // GAME_SERVER_MMO_ACCOUNT_DATA_H

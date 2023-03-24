@@ -48,6 +48,9 @@ public:
 
 	void GiveItem(int ClientID, int ItemID, int Count = 1, int Quality = QUALITY_0, int Data = 0);
 	void UseItem(int ClientID, int ItemID, int Count);
+
+	const char *GetUpgradeName(int UpgradeID);
+	int GetUpgradeCost(int UpgradeID);
 };
 
 #endif // GAME_SERVER_MMO_MMO_CORE_H
