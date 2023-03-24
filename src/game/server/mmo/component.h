@@ -16,6 +16,7 @@ protected:
 	class IStorage *Storage() const;
 	class IConsole *Console() const;
 	class CCollision *Collision() const;
+	class CMMOCore *MMOCore() const;
 
 public:
 	virtual ~CServerComponent() = default;

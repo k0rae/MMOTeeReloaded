@@ -426,7 +426,7 @@ void CCharacter::FireWeapon()
 	{
 		// Check farming
 		CPickupJob *pPickup = (CPickupJob *)GameWorld()->ClosestEntity(m_Pos, 30.f, CGameWorld::ENTTYPE_PICKUP_JOB);
-		if (pPickup)
+		if (pPickup && pPickup->m_State != 0)
 		{
 			pPickup->Damage(m_pPlayer->GetCID());
 			m_ReloadTimer = Server()->TickSpeed();

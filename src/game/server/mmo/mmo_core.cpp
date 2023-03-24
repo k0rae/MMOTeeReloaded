@@ -10,6 +10,7 @@
 using namespace pugi;
 
 class CGameWorld *CMMOCore::GameWorld() { return &m_pGameServer->m_World; }
+class IServer *CMMOCore::Server() { return m_pGameServer->Server(); }
 
 void CMMOCore::Init(CGameContext *pGameServer)
 {
@@ -111,26 +112,31 @@ void CMMOCore::GetProgressBar(char *pStr, int StrSize, char Filler, char Empty, 
 
 SInvItem *CMMOCore::GetItem(int ItemID)
 {
-	auto Item = std::find_if(m_vItems.begin(), m_vItems.end(), [&](SInvItem Item) {
+	auto it = std::find_if(m_vItems.begin(), m_vItems.end(), [&](SInvItem Item) {
 		return (Item.m_ID == ItemID);
 	});
 
-	return &*Item;
+	if (it == m_vItems.end())
+		return 0x0;
+	return &*it;
 }
 
 const char *CMMOCore::GetItemName(int ItemID)
 {
-	return GetItem(ItemID)->m_aName;
+	SInvItem *pItem = GetItem(ItemID);
+	return pItem ? pItem->m_aName : "[ERROR ITEM]";
 }
 
 int CMMOCore::GetItemType(int ItemID)
 {
-	return GetItem(ItemID)->m_Type;
+	SInvItem *pItem = GetItem(ItemID);
+	return pItem ? pItem->m_Type : -1;
 }
 
 int CMMOCore::GetItemRarity(int ItemID)
 {
-	return GetItem(ItemID)->m_Rarity;
+	SInvItem *pItem = GetItem(ItemID);
+	return pItem ? pItem->m_Rarity : -1;
 }
 
 const char *CMMOCore::GetQualityString(int Quality)
@@ -171,7 +177,6 @@ void CMMOCore::GiveItem(int ClientID, int ItemID, int Count, int Quality, int Da
 		return;
 
 	SInvItem Item;
-	str_copy(Item.m_aName, GetItemName(ItemID));
 	Item.m_Rarity = GetItemRarity(ItemID);
 	Item.m_Type = GetItemType(ItemID);
 	Item.m_ID = ItemID;
@@ -180,4 +185,50 @@ void CMMOCore::GiveItem(int ClientID, int ItemID, int Count, int Quality, int Da
 	Item.m_Data = Data;
 
 	pPly->m_AccInv.AddItem(Item);
+
+	char aBuf[256];
+	str_format(aBuf, sizeof(aBuf), "+%s x%d", GetItemName(ItemID), Count);
+	GameServer()->SendChatTarget(ClientID, aBuf);
+}
+
+void CMMOCore::UseItem(int ClientID, int ItemID, int Count)
+{
+	if (ClientID < 0 || ClientID >= MAX_PLAYERS)
+		return;
+	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+	if (!pPly || !pPly->m_LoggedIn)
+		return;
+
+	int Value = 0;
+	SInvItem Item = pPly->m_AccInv.GetItem(ItemID);
+	if (Item.m_Count == 0)
+		return;
+	Count = clamp(Count, 1, Item.m_Count);
+
+	// Handle item use
+	if (ItemID == ITEM_CARROT)
+	{
+		pPly->AddEXP(20 * Count);
+		Value += 20 * Count;
+	}
+	else if (ItemID == ITEM_TOMATO)
+	{
+		pPly->AddEXP(30 * Count);
+		Value += 30 * Count;
+	}
+	else if (ItemID == ITEM_POTATO)
+	{
+		pPly->AddEXP(50 * Count);
+		Value += 50 * Count;
+	}
+
+	// Notify clients
+	char aResultText[256] = {'\0'};
+	if (ItemID >= ITEM_CARROT && ItemID <= ITEM_TOMATO)
+		str_format(aResultText, sizeof(aResultText), "%s used %s x%d and got %d exp", Server()->ClientName(ClientID), GetItemName(ItemID), Count, Value);
+
+	GameServer()->SendChatTarget(-1, aResultText);
+
+	// Delete items from inventory
+	pPly->m_AccInv.RemItem(ItemID, Count);
 }

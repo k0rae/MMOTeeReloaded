@@ -84,7 +84,7 @@ public:
 		if (it != m_vItems.end())
 			return *it;
 
-		return {0, 0, 0, 0};
+		return {{'\0'}, -1, 0};
 	}
 
 	int ItemCount(int ItemID)

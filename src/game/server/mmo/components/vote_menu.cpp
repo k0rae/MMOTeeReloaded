@@ -53,6 +53,22 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 		AddMenuVote(ClientID, "null", "");
 		ListInventory(ClientID, Value1);
 	}
+	else if (sscanf_s(aCmd, "inv_item%d", &Value1))
+	{
+		ItemInfo(ClientID, Value1);
+	}
+	else if (sscanf_s(aCmd, "inv_item_use%d", &Value1))
+	{
+		int Count = 1;
+		try
+		{
+			Count = std::stoi(pMsg->m_pReason);
+		} catch(std::exception &e) {}
+
+		m_aPlayersMenu[ClientID] = MENU_INVENTORY;
+		RebuildMenu(ClientID);
+		MMOCore()->UseItem(ClientID, Value1, Count);
+	}
 }
 
 void CVoteMenu::AddMenuVote(int ClientID, const char *pCmd, const char *pDesc)
@@ -151,7 +167,6 @@ void CVoteMenu::RebuildMenu(int ClientID)
 void CVoteMenu::ListInventory(int ClientID, int Type)
 {
 	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
-	CMMOCore *pMMOCore = &GameServer()->m_MMOCore;
 
 	if (pPly->m_AccInv.m_vItems.empty())
 	{
@@ -167,11 +182,11 @@ void CVoteMenu::ListInventory(int ClientID, int Type)
 			continue;
 
 		str_format(aBuf, sizeof(aBuf), "%s x%d [%s] | %s",
-			pMMOCore->GetItemName(Item.m_ID),
+			MMOCore()->GetItemName(Item.m_ID),
 			Item.m_Count,
-			pMMOCore->GetRarityString(Item.m_Rarity),
-			pMMOCore->GetQualityString(Item.m_Quality));
-		str_format(aCmd, sizeof(aCmd), "itm%d", Item.m_ID);
+			MMOCore()->GetRarityString(Item.m_Rarity),
+			MMOCore()->GetQualityString(Item.m_Quality));
+		str_format(aCmd, sizeof(aCmd), "inv_item%d", Item.m_ID);
 
 		AddMenuVote(ClientID, aCmd, aBuf);
 	}
@@ -183,4 +198,32 @@ void CVoteMenu::AddBack(int ClientID, int Menu)
 	char aBuf[16];
 	str_format(aBuf, sizeof(aBuf), "set%d", Menu);
 	AddMenuVote(ClientID, aBuf, "◄ Back ◄");
+}
+
+void CVoteMenu::ItemInfo(int ClientID, int ItemID)
+{
+	ClearVotes(ClientID);
+
+	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+	SInvItem Item = pPly->m_AccInv.GetItem(ItemID);
+	char aBuf[256];
+
+	AddMenuVote(ClientID, "null", "------------ Item menu");
+	str_format(aBuf, sizeof(aBuf), "Item: %s", MMOCore()->GetItemName(ItemID));
+	AddMenuVote(ClientID, "null", aBuf);
+	str_format(aBuf, sizeof(aBuf), "Count: %d", Item.m_Count);
+	AddMenuVote(ClientID, "null", aBuf);
+	str_format(aBuf, sizeof(aBuf), "Rarity: %s", MMOCore()->GetRarityString(Item.m_Rarity));
+	AddMenuVote(ClientID, "null", aBuf);
+	str_format(aBuf, sizeof(aBuf), "Quality: %s", MMOCore()->GetQualityString(Item.m_Quality));
+	AddMenuVote(ClientID, "null", aBuf);
+	AddMenuVote(ClientID, "null", "");
+	str_format(aBuf, sizeof(aBuf), "inv_item_use%d", ItemID);
+	AddMenuVote(ClientID, aBuf, "☞ Use");
+	str_format(aBuf, sizeof(aBuf), "inv_item_drop%d", ItemID);
+	AddMenuVote(ClientID, aBuf, "☞ Drop");
+	str_format(aBuf, sizeof(aBuf), "inv_item_dest%d", ItemID);
+	AddMenuVote(ClientID, aBuf, "☞ Destroy");
+
+	AddBack(ClientID, MENU_INVENTORY);
 }

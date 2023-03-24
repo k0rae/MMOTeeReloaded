@@ -25,11 +25,14 @@ class CVoteMenu : public CServerComponent
 	int m_aPlayersMenu[MAX_PLAYERS];
 
 	void ListInventory(int ClientID, int Type);
+	void ItemInfo(int ClientID, int ItemID);
 
 public:
 	CVoteMenu();
 
 	virtual void OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame) override;
+
+	void SetMenu(int ClientID, int MenuID) { m_aPlayersMenu[ClientID] = MenuID; };
 
 	void AddMenuVote(int ClientID, const char *pCmd, const char *pDesc);
 	void AddMenuChangeVote(int ClientID, int Menu, const char *pDesc);

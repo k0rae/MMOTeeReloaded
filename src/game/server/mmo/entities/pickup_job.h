@@ -16,7 +16,6 @@ class CPickupJob : public CEntity
 {
 	int m_aIDs[2];
 	int m_Type;
-	int m_State;
 	int m_DestroyProgress;
 	int m_NextGrowTick;
 
@@ -25,6 +24,8 @@ public:
 	~CPickupJob();
 
 	void Damage(int ClientID);
+
+	int m_State;
 
 	virtual void Tick() override;
 	virtual void Snap(int SnappingClient) override;

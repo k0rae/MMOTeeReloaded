@@ -3,6 +3,8 @@
 #include <engine/server.h>
 #include <game/server/gamecontext.h>
 
+#include <cstdlib>
+
 CPickupJob::CPickupJob(CGameWorld *pWorld, vec2 Pos, int Type) :
 	CEntity(pWorld, CGameWorld::ENTTYPE_PICKUP_JOB, Pos)
 {
@@ -42,13 +44,15 @@ void CPickupJob::Damage(int ClientID)
 		if (m_Type == PICKUP_JOB_TYPE_FARM)
 		{
 			int Item = ITEM_CARROT;
+			int Count = 1;
+			Count += Count * (m_State / 2 + 0.5f);
 			switch(rand() % 5)
 			{
 			case 0: Item = ITEM_TOMATO; break;
 			case 1: Item = ITEM_POTATO; break;
 			}
 
-			GameServer()->m_MMOCore.GiveItem(ClientID, Item);
+			GameServer()->m_MMOCore.GiveItem(ClientID, Item, Count);
 		}
 	}
 
