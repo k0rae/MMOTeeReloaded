@@ -60,4 +60,10 @@
     <Item ID="38" Type="1" Rarity="2" Name="Titanium ingot"/>
     <Item ID="39" Type="1" Rarity="2" Name="Dragon ingot"/>
     <Item ID="40" Type="1" Rarity="3" Name="Astralium ingot"/>
+    <!-- Weapons -->
+    <Item ID="41" Type="4" Rarity="0" Name="Gun"/>
+    <Item ID="42" Type="4" Rarity="0" Name="Grenade"/>
+    <Item ID="43" Type="4" Rarity="0" Name="Shotgun"/>
+    <Item ID="44" Type="4" Rarity="0" Name="Laser"/>
+    <Item ID="45" Type="4" Rarity="1" Name="SGun"/>
 </Items>

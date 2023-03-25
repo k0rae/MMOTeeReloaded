@@ -316,8 +316,18 @@ int IGameController::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *
 
 void IGameController::OnCharacterSpawn(class CCharacter *pChr)
 {
-	// give default weapons
 	pChr->GiveWeapon(WEAPON_HAMMER);
+
+	CAccountInventory &Inv = pChr->GetPlayer()->m_AccInv;
+
+	if (Inv.HaveItem(ITEM_GUN))
+		pChr->GiveWeapon(WEAPON_GUN);
+	if (Inv.HaveItem(ITEM_GRENADE))
+		pChr->GiveWeapon(WEAPON_GRENADE);
+	if (Inv.HaveItem(ITEM_SHOTGUN))
+		pChr->GiveWeapon(WEAPON_SHOTGUN);
+	if (Inv.HaveItem(ITEM_LASER))
+		pChr->GiveWeapon(WEAPON_LASER);
 }
 
 void IGameController::HandleCharacterTiles(CCharacter *pChr, int MapIndex)
