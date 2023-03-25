@@ -45,7 +45,7 @@ MACRO_TUNING_PARAM(LaserDamage, laser_damage, 5, "(UNUSED) Laser damage")
 MACRO_TUNING_PARAM(PlayerCollision, player_collision, 1, "Enable player collisions")
 MACRO_TUNING_PARAM(PlayerHooking, player_hooking, 1, "Enable player vs player hooking")
 
-//ddnet tuning
+// ddnet tuning
 MACRO_TUNING_PARAM(ExplosionStrength, explosion_strength, 6.0f, "Explosion strength (grenade for example)")
 MACRO_TUNING_PARAM(HammerStrength, hammer_strength, 1.0f, "Hammer strength")
 MACRO_TUNING_PARAM(HookDuration, hook_duration, 1.25f, "Hook duration")

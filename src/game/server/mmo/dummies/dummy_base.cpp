@@ -13,7 +13,7 @@
 // Mobs
 #include "mobs/slime.h"
 
-CDummyBase::CDummyBase(CGameWorld *pWorld, vec2 Pos, int DummyType) :
+CDummyBase::CDummyBase(CGameWorld *pWorld, vec2 Pos, int DummyType, int DummyAIType) :
 	CEntity(pWorld, CGameWorld::ENTTYPE_DUMMY, Pos, 28.f)
 {
 	GameWorld()->InsertEntity(this);
@@ -24,22 +24,23 @@ CDummyBase::CDummyBase(CGameWorld *pWorld, vec2 Pos, int DummyType) :
 	m_NoDamage = false;
 	m_DummyType = DummyType;
 	m_DefaultEmote = EMOTE_NORMAL;
+	m_DummyAIType = DummyAIType;
 
 	str_copy(m_aName, "[NULL BOT]");
 	str_copy(m_aClan, "");
 
 	// Create dummy controller
-	switch(m_DummyType)
+	switch(m_DummyAIType)
 	{
-	case DUMMY_TYPE_STAND:
+	case DUMMY_AI_TYPE_NONE:
 		m_pDummyController = 0x0;
 		break;
-	case DUMMY_TYPE_SLIME:
+	case DUMMY_AI_TYPE_ATTACK:
 		m_pDummyController = new CSlimeController();
 		break;
 	default:
 		m_pDummyController = 0x0;
-		dbg_msg("dummy", "invalid dummy type: %d", m_DummyType);
+		dbg_msg("dummy", "invalid dummy ai type: %d", m_DummyType);
 	}
 
 	if (m_pDummyController)

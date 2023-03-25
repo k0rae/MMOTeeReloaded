@@ -663,21 +663,14 @@ void CCharacter::FireWeapon()
 
 	if(!m_ReloadTimer)
 	{
-		float FireDelay;
-		GameServer()->Tuning()->Get(38 + m_Core.m_ActiveWeapon, &FireDelay);
-
-		float Mul = 30;
+		float Mul = 10;
 		switch(m_Core.m_ActiveWeapon)
 		{
-		case WEAPON_GRENADE: Mul = 17; break;
-		case WEAPON_HAMMER: Mul = 2; break;
-		case WEAPON_GUN: Mul = 1; break;
-		case WEAPON_SHOTGUN: Mul = 10; break;
+		case WEAPON_GRENADE: Mul = 4; break;
 		}
 
-		FireDelay -= m_pPlayer->m_AccUp.m_FireSpeed * Mul;
-		FireDelay = fmax(FireDelay, 0);
-		m_ReloadTimer = FireDelay * Server()->TickSpeed() / 1000;
+		float FireDelay = 1000 + m_pPlayer->m_AccUp.m_FireSpeed * Mul;
+		m_ReloadTimer = g_pData->m_Weapons.m_aId[Weapon].m_Firedelay * Server()->TickSpeed() / FireDelay;
 	}
 }
 
@@ -697,7 +690,7 @@ void CCharacter::HandleWeapons()
 	int Ammo = m_Core.m_aWeapons[Weapon].m_Ammo;
 	int MaxAmmo = m_Core.m_aWeapons[Weapon].m_MaxAmmo;
 	int Tick = Server()->Tick();
-	if(Weapon != WEAPON_HAMMER && Tick > m_Core.m_aWeapons[Weapon].m_AmmoRegenStart && Tick % (int)(Server()->TickSpeed() * RegenTime) == 0 && Ammo < MaxAmmo)
+	if(AmmoRegen && Weapon != WEAPON_HAMMER && Tick > m_Core.m_aWeapons[Weapon].m_AmmoRegenStart && Tick % (int)(Server()->TickSpeed() * RegenTime) == 0 && Ammo < MaxAmmo)
 		m_Core.m_aWeapons[Weapon].m_Ammo++;
 
 	// check reload timer

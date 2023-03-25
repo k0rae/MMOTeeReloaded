@@ -3,6 +3,7 @@
 
 #include <base/vmath.h>
 #include <engine/shared/protocol.h>
+#include <game/server/teeinfo.h>
 
 #include "components/account_manager.h"
 
@@ -16,6 +17,19 @@ struct SShopEntry
 	int m_ID;
 	int m_Cost;
 	int m_Level;
+};
+
+struct SBotData
+{
+	int m_ID;
+	char m_aName[MAX_NAME_LENGTH];
+	CTeeInfo m_TeeInfo;
+	char m_aSpawnPointName[16];
+	int m_Level;
+	int m_HP;
+	int m_Armor;
+	int m_Damage;
+	int m_AIType;
 };
 
 class CGameContext;
@@ -32,6 +46,7 @@ class CMMOCore
 
 	std::vector<SInvItem> m_vItems;
 	std::vector<SShopEntry> m_vShopItems;
+	std::vector<SBotData> m_vBotDatas;
 
 	SInvItem *GetItem(int ItemID);
 
@@ -45,8 +60,10 @@ public:
 	void GetProgressBar(char *pStr, int StrSize, char Filler, char Empty, int Num, int MaxNum);
 
 	int GetNextBotSnapID(int ClientID);
-	void CreateDummy(vec2 Pos, int DummyType);
+	void CreateDummy(vec2 Pos, int DummyType, int DummyAIType);
+	void CreateDummy(vec2 Pos, SBotData Data);
 	void ClearBotSnapIDs();
+	void OnMapBotPoint(vec2 Pos, const char *pPointName);
 
 	const char *GetItemName(int ItemID);
 	int GetItemType(int ItemID);

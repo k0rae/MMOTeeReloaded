@@ -16,9 +16,10 @@ void CMMOCore::Init(CGameContext *pGameServer)
 {
 	m_pGameServer = pGameServer;
 
+	xml_document Document;
+
 	// Load items from mmo/items.xml
-	xml_document DocumentItems;
-	xml_parse_result ParseResult = DocumentItems.load_file("mmo/items.xml");
+	xml_parse_result ParseResult = Document.load_file("mmo/items.xml");
 
 	if (!ParseResult)
 	{
@@ -28,9 +29,9 @@ void CMMOCore::Init(CGameContext *pGameServer)
 		dbg_break();
 	}
 
-	xml_node Items = DocumentItems.child("Items");
+	xml_node Root = Document.child("Items");
 
-	for (xml_node Node : Items)
+	for (xml_node Node : Root)
 	{
 		SInvItem Item;
 		Item.m_ID = Node.attribute("ID").as_int(-1);
@@ -42,20 +43,19 @@ void CMMOCore::Init(CGameContext *pGameServer)
 	}
 
 	// Load shop items from mmo/shop.xml
-	xml_document DocumentShop;
-	ParseResult = DocumentShop.load_file("mmo/shop.xml");
+	ParseResult = Document.load_file("mmo/shop.xml");
 
 	if (!ParseResult)
 	{
-		dbg_msg("xml", "source file 'mmo/items.xml' parsed with errors!");
+		dbg_msg("xml", "source file 'mmo/shop.xml' parsed with errors!");
 		dbg_msg("xml", "error: %s", ParseResult.description());
 
 		dbg_break();
 	}
 
-	xml_node ShopItems = DocumentShop.child("Shop");
+	Root = Document.child("Shop");
 
-	for (xml_node Node : ShopItems)
+	for (xml_node Node : Root)
 	{
 		SShopEntry Entry;
 		Entry.m_ID = Node.attribute("ID").as_int(-1);
@@ -63,6 +63,42 @@ void CMMOCore::Init(CGameContext *pGameServer)
 		Entry.m_Level = Node.attribute("Level").as_int(-1);
 
 		m_vShopItems.push_back(Entry);
+	}
+
+	// Load mobs from mmo/mobs.xml
+	ParseResult = Document.load_file("mmo/mobs.xml");
+
+	if (!ParseResult)
+	{
+		dbg_msg("xml", "source file 'mmo/mobs.xml' parsed with errors!");
+		dbg_msg("xml", "error: %s", ParseResult.description());
+
+		dbg_break();
+	}
+
+	Root = Document.child("Mobs");
+
+	for (xml_node Node : Root)
+	{
+		xml_node TeeInfo = Node.child("TeeInfo");
+		xml_node Stats = Node.child("Stats");
+		xml_node Spawn = Node.child("Spawn");
+
+		SBotData Data;
+		Data.m_ID = Node.attribute("ID").as_int();
+		Data.m_AIType = Node.attribute("AIType").as_int();
+		str_copy(Data.m_aName, TeeInfo.attribute("Name").as_string("UNKNOWN BOT"));
+		str_copy(Data.m_TeeInfo.m_aSkinName, TeeInfo.attribute("Skin").as_string());
+		Data.m_TeeInfo.m_UseCustomColor = TeeInfo.attribute("UseCustomColors").as_int();
+		Data.m_TeeInfo.m_ColorBody = TeeInfo.attribute("ColorBody").as_int();
+		Data.m_TeeInfo.m_ColorFeet = TeeInfo.attribute("ColorFeet").as_int();
+		Data.m_Level = Stats.attribute("Level").as_int();
+		Data.m_HP = Stats.attribute("HP").as_int();
+		Data.m_Armor = Stats.attribute("Armor").as_int();
+		Data.m_Damage = Stats.attribute("Damage").as_int();
+		str_copy(Data.m_aSpawnPointName, Spawn.empty() ? "" : Spawn.attribute("SpawnPoint").as_string());
+
+		m_vBotDatas.push_back(Data);
 	}
 }
 
@@ -79,29 +115,52 @@ void CMMOCore::ClearBotSnapIDs()
 		i = BOT_IDS_OFFSET;
 }
 
-void CMMOCore::CreateDummy(vec2 Pos, int DummyType)
+void CMMOCore::CreateDummy(vec2 Pos, int DummyType, int AIType)
 {
-	CDummyBase *pNewDummy = new CDummyBase(GameWorld(), Pos, DummyType);
+	CDummyBase *pNewDummy = new CDummyBase(GameWorld(), Pos, DummyType, AIType);
 
-	// 0 - name, 1 - clan, 2 - skin
-	static const char *s_aapDummyIndentsStrings[][3] = {
-		{"ULTRA STANDER", "", "greyfox"}, // None bot
-		{"Slime", "MOB", "ghost"} // Slime
-	};
+	pNewDummy->SetName("UNKNOWN BOT");
+	pNewDummy->SetClan("MOB");
+}
 
-	// 0 - use custom color, 1 - color body, 2 - color feet
-	static int s_aapDummyIndentsInts[][3] = {
-		{1, 0, 0}, // None bot
-		{1, 5504798, 5504798} // Slime
-	};
+void CMMOCore::CreateDummy(vec2 Pos, SBotData Data)
+{
+	CDummyBase *pNewDummy = new CDummyBase(GameWorld(), Pos, Data.m_ID, Data.m_AIType);
 
-	pNewDummy->SetName(s_aapDummyIndentsStrings[DummyType][0]);
-	pNewDummy->SetClan(s_aapDummyIndentsStrings[DummyType][1]);
-	pNewDummy->SetTeeInfo(CTeeInfo(
-		s_aapDummyIndentsStrings[DummyType][2],
-		s_aapDummyIndentsInts[DummyType][0],
-		s_aapDummyIndentsInts[DummyType][1],
-		s_aapDummyIndentsInts[DummyType][2]));
+	pNewDummy->SetName(Data.m_aName);
+	pNewDummy->SetClan("MOB");
+	pNewDummy->SetTeeInfo(Data.m_TeeInfo);
+	pNewDummy->m_Level = Data.m_Level;
+	pNewDummy->m_MaxHealth = Data.m_HP;
+	pNewDummy->m_MaxArmor = Data.m_Armor;
+	pNewDummy->m_Damage = Data.m_Damage;
+}
+
+void CMMOCore::OnMapBotPoint(vec2 Pos, const char *pPointName)
+{
+	SBotData *pBotData = 0x0;
+
+	// Search for bot data
+	char aBuf[256];
+	for (SBotData &Data : m_vBotDatas)
+	{
+		str_format(aBuf, sizeof(aBuf), "Bot%s", Data.m_aSpawnPointName);
+		if (!str_comp(aBuf, pPointName))
+		{
+			pBotData = &Data;
+			break;
+		}
+	}
+
+	// Check for bot data
+	if (!pBotData)
+	{
+		dbg_msg("mmo_core", "unknown bot spawn point: %s. Pos: %f %f", pPointName, Pos.x / 32.f, Pos.y / 32.f);
+		return;
+	}
+
+	// Create dummy
+	CreateDummy(Pos, *pBotData);
 }
 
 int CMMOCore::GetExpForLevelUp(int Level)

@@ -56,7 +56,7 @@ void IDbConnection::FormatCreateWorks(char *aBuf, unsigned int BufferSize)
 {
 	str_format(aBuf, BufferSize,
 		"CREATE TABLE IF NOT EXISTS u_works ("
-		"  user_id INTEGER NOT NULL PRIMARY KEY, "
+		"  user_id INTEGER NOT NULL, "
 		"  work_id INTEGER NOT NULL, "
 		"  exp INTEGER NOT NULL DEFAULT 0, "
 		"  level INTEGER NOT NULL DEFAULT 1"

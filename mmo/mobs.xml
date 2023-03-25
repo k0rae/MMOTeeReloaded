@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Mobs>
+    <!-- AI Types: -->
+    <!-- 0 - None. Just stand bot -->
+    <!-- 1 - Attack. Bot will attack player -->
+
+    <!-- Just bot -->
+    <Mob ID="0" AIType="0">
+        <TeeInfo Name="ULTRA STANDER" Skin="greyfox" UseCustomColors="1" ColorBody="0" ColorFeet="0"/>
+        <Stats Level="0" HP="10" Armor="0" Damage="0"/>
+    </Mob>
+    <!-- Slime -->
+    <Mob ID="1" AIType="1">
+        <TeeInfo Name="Slime" Skin="ghost" UseCustomColors="1" ColorBody="5504798" ColorFeet="5504798"/>
+        <Stats Level="1" HP="10" Armor="0" Damage="0"/>
+        <Spawn SpawnPoint="Slime"/>
+    </Mob>
+    <!-- Zombie -->
+    <Mob ID="2" AIType="1">
+        <TeeInfo Name="Zombie" Skin="cammo" UseCustomColors="1" ColorBody="5406464" ColorFeet="5406464"/>
+        <Stats Level="30" HP="60" Armor="0" Damage="5"/>
+        <Spawn SpawnPoint="Zombie"/>
+    </Mob>
+    <!-- Skeleton -->
+    <Mob ID="3" AIType="1">
+        <TeeInfo Name="Skeleton" Skin="cammostripes" UseCustomColors="1" ColorBody="255" ColorFeet="255"/>
+        <Stats Level="100" HP="140" Armor="20" Damage="10"/>
+        <Spawn SpawnPoint="Skeleton"/>
+    </Mob>
+    <!-- Goblin -->
+    <Mob ID="4" AIType="1">
+        <TeeInfo Name="Goblin" Skin="pinky" UseCustomColors="1" ColorBody="5677091" ColorFeet="5677091"/>
+        <Stats Level="175" HP="250" Armor="50" Damage="20"/>
+        <Spawn SpawnPoint="Goblin"/>
+    </Mob>
+    <!-- Hohol -->
+    <Mob ID="5" AIType="1">
+        <TeeInfo Name="Hohol" Skin="pinky" UseCustomColors="0" ColorBody="0" ColorFeet="0"/>
+        <Stats Level="200" HP="300" Armor="100" Damage="40"/>
+        <Spawn SpawnPoint="Hohol"/>
+    </Mob>
+    <!-- Sochan -->
+    <Mob ID="6" AIType="1">
+        <TeeInfo Name="Sochan" Skin="redstripe" UseCustomColors="1" ColorBody="9740323" ColorFeet="12386048"/>
+        <Stats Level="250" HP="380" Armor="150" Damage="55"/>
+        <Spawn SpawnPoint="Sochan"/>
+    </Mob>
+</Mobs>

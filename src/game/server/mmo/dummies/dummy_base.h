@@ -11,6 +11,12 @@ enum
 	DUMMY_TYPE_SLIME
 };
 
+enum
+{
+	DUMMY_AI_TYPE_NONE,
+	DUMMY_AI_TYPE_ATTACK
+};
+
 class CDummyBase : public CEntity
 {
 	friend class CDummyController;
@@ -33,6 +39,7 @@ class CDummyBase : public CEntity
 	bool m_NoDamage;
 
 	int m_DummyType;
+	int m_DummyAIType;
 	class CDummyController *m_pDummyController;
 
 	int m_DefaultEmote;
@@ -40,7 +47,7 @@ class CDummyBase : public CEntity
 	int m_EmoteStop;
 
 public:
-	CDummyBase(CGameWorld *pWorld, vec2 Pos, int DummyType);
+	CDummyBase(CGameWorld *pWorld, vec2 Pos, int DummyType, int DummyAIType);
 	~CDummyBase();
 
 	void Spawn();
@@ -63,6 +70,12 @@ public:
 	int GetDummyType() { return m_DummyType; }
 	CCharacterCore *Core() { return &m_Core; }
 	bool IsNoDamage() { return m_NoDamage; }
+
+	// Stats
+	int m_Level;
+	int m_MaxHealth;
+	int m_MaxArmor;
+	int m_Damage;
 };
 
 #endif // GAME_SERVER_ENTITIES_DUMMIES_DUMMY_BASE_H

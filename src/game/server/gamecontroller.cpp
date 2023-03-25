@@ -218,12 +218,13 @@ bool IGameController::OnQuadEntity(const char *pLayerName, vec2 Pivot, vec2 *pPo
 		Pos += pPoints[i];
 	Pos /= 4;
 
+	// Handle mobs spawn points
+	if (str_startswith_nocase(pLayerName, "Bot"))
+		GameServer()->m_MMOCore.OnMapBotPoint(Pos, pLayerName);
 	// Handle mobs
-	if (!str_comp(pLayerName, "BotSlime"))
-		GameServer()->m_MMOCore.CreateDummy(Pos, DUMMY_TYPE_SLIME);
-	if (!str_comp(pLayerName, "Farm"))
+	else if (!str_comp(pLayerName, "Farm"))
 		new CPickupJob(&GameServer()->m_World, Pos, PICKUP_JOB_TYPE_FARM);
-	if (!str_comp(pLayerName, "Mine"))
+	else if (!str_comp(pLayerName, "Mine"))
 		new CPickupJob(&GameServer()->m_World, Pos, PICKUP_JOB_TYPE_MINE);
 
 	return false;
