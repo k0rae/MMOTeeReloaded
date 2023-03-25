@@ -502,6 +502,8 @@ private:
 	} m_aClientsBroadcast[MAX_CLIENTS];
 
 	static void ConCreateDummy(IConsole::IResult *pResult, void *pUserData);
+	static void ConExecuteSQL(IConsole::IResult *pResult, void *pUserData);
+	static void ConExecuteSQLGet(IConsole::IResult *pResult, void *pUserData);
 };
 
 #endif

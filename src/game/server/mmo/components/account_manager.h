@@ -11,11 +11,13 @@
 
 struct SAccountRegisterResult;
 struct SAccountLoginResult;
+struct SAdminExecResult;
 
 class CAccountManager : public CServerComponent
 {
 	std::vector<std::shared_ptr<SAccountRegisterResult>> m_vpRegisterResults;
 	std::vector<std::shared_ptr<SAccountLoginResult>> m_vpLoginResults;
+	std::vector<std::shared_ptr<SAdminExecResult>> m_vpAdminExecResults;
 
 	// Chat commands
 	static void ChatRegister(IConsole::IResult *pResult, void *pUserData);
@@ -25,6 +27,7 @@ class CAccountManager : public CServerComponent
 	static bool RegisterThread(IDbConnection *pSqlServer, const ISqlData *pGameData, char *pError, int ErrorSize);
 	static bool LoginThread(IDbConnection *pSqlServer, const ISqlData *pGameData, char *pError, int ErrorSize);
 	static bool SaveThread(IDbConnection *pSqlServer, const ISqlData *pGameData, char *pError, int ErrorSize);
+	static bool AdminExecThread(IDbConnection *pSqlServer, const ISqlData *pGameData, char *pError, int ErrorSize);
 
 	CDbConnectionPool *DBPool();
 
@@ -35,6 +38,8 @@ public:
 
 	void Register(int ClientID, const char *pName, const char *pPasswordHash);
 	void Login(int ClientID, const char *pName, const char *pPasswordHash);
+	void ExecAdminSQL(int ClientID, const char *pQuery);
+	void ExecAdminSQLGet(int ClientID, const char *pQuery);
 
 	void Save(int ClientID);
 };
@@ -110,6 +115,26 @@ struct SAccountSaveRequest : ISqlData
 	CAccountInventory m_AccInv;
 	SAccountWorksData m_AccWorks;
 	SAccountUpgrade m_AccUp;
+};
+
+struct SAdminExecResult : SAccountResultBase
+{
+	SAdminExecResult() = default;
+
+	int m_ClientID;
+	char m_aMessage[256];
+};
+
+struct SAdminExecRequest : ISqlData
+{
+	SAdminExecRequest(std::shared_ptr<SAdminExecResult> pResult) :
+		ISqlData(std::move(pResult))
+	{
+
+	}
+
+	bool m_IsGet;
+	char m_aQuery[1024];
 };
 
 #endif // GAME_SERVER_MMO_ACCOUNT_MANAGER_H

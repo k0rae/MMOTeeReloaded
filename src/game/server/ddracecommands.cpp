@@ -839,3 +839,15 @@ void CGameContext::ConCreateDummy(IConsole::IResult *pResult, void *pUserData)
 	CGameContext *pSelf = (CGameContext *)pUserData;
 	pSelf->m_MMOCore.CreateDummy(pSelf->GetPlayerChar(pResult->m_ClientID)->m_Pos, 0, 0);
 }
+
+void CGameContext::ConExecuteSQL(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	pSelf->m_AccountManager.ExecAdminSQL(pResult->m_ClientID, pResult->GetString(0));
+}
+
+void CGameContext::ConExecuteSQLGet(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	pSelf->m_AccountManager.ExecAdminSQLGet(pResult->m_ClientID, pResult->GetString(0));
+}

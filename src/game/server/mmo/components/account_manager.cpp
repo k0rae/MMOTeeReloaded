@@ -272,7 +272,7 @@ bool CAccountManager::SaveThread(IDbConnection *pSqlServer, const ISqlData *pGam
 
 	// Insert work data
 	str_copy(aBuf, "INSERT INTO u_works(user_id, work_id, exp, level) VALUES (?, ?, ?, ?)");
-	for (int i = 0; i < std::size(pData->m_AccWorks.m_aWorks); i++)
+	for (unsigned long i = 0; i < std::size(pData->m_AccWorks.m_aWorks); i++)
 	{
 		const SWorkData &Work = pData->m_AccWorks.m_aWorks[i];
 
@@ -319,6 +319,68 @@ void CAccountManager::Save(int ClientID)
 	pRequest->m_AccWorks = pPly->m_AccWorks;
 	pRequest->m_AccUp = pPly->m_AccUp;
 	DBPool()->Execute(SaveThread, std::move(pRequest), "Save");
+}
+
+bool CAccountManager::AdminExecThread(IDbConnection *pSqlServer, const ISqlData *pGameData, char *pError, int ErrorSize)
+{
+	const SAdminExecRequest *pData = dynamic_cast<const SAdminExecRequest *>(pGameData);
+	SAdminExecResult *pResult = dynamic_cast<SAdminExecResult *>(pGameData->m_pResult.get());
+
+	if(pSqlServer->PrepareStatement(pData->m_aQuery, pError, ErrorSize))
+		return true;
+
+	if (pData->m_IsGet)
+	{
+		bool End;
+		if(pSqlServer->Step(&End, pError, ErrorSize))
+			return true;
+
+		if (End)
+		{
+			str_copy(pResult->m_aMessage, "query returned 0 rows");
+			return false;
+		}
+
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "query returned 1 row: %d", pSqlServer->GetInt(1));
+		str_copy(pResult->m_aMessage, aBuf);
+	}
+	else
+	{
+		int NumInserted;
+		if(pSqlServer->ExecuteUpdate(&NumInserted, pError, ErrorSize))
+			return true;
+
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "query affected %d rows", NumInserted);
+		str_copy(pResult->m_aMessage, aBuf);
+	}
+
+	return false;
+}
+
+void CAccountManager::ExecAdminSQL(int ClientID, const char *pQuery)
+{
+	auto pResult = std::make_shared<SAdminExecResult>();
+	pResult->m_ClientID = ClientID;
+	m_vpAdminExecResults.push_back(pResult);
+
+	auto Request = std::make_unique<SAdminExecRequest>(pResult);
+	str_copy(Request->m_aQuery, pQuery);
+	Request->m_IsGet = false;
+	DBPool()->Execute(AdminExecThread, std::move(Request), "Admin Exec");
+}
+
+void CAccountManager::ExecAdminSQLGet(int ClientID, const char *pQuery)
+{
+	auto pResult = std::make_shared<SAdminExecResult>();
+	pResult->m_ClientID = ClientID;
+	m_vpAdminExecResults.push_back(pResult);
+
+	auto Request = std::make_unique<SAdminExecRequest>(pResult);
+	str_copy(Request->m_aQuery, pQuery);
+	Request->m_IsGet = true;
+	DBPool()->Execute(AdminExecThread, std::move(Request), "Admin Exec Get");
 }
 
 void CAccountManager::ChatRegister(IConsole::IResult *pResult, void *pUserData)
