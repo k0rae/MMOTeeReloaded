@@ -993,7 +993,7 @@ void CGameContext::OnTick()
 			pPlayer->PostPostTick();
 	}
 
-	if (Server()->Tick() % (Server()->TickSpeed() * 60 * 5))
+	if (Server()->Tick() % (Server()->TickSpeed() * 60 * 5) == 0)
 		SendChatTarget(-1, "Join our discord server: https://discord.gg/3KrNyerWtx");
 
 	// update voting
