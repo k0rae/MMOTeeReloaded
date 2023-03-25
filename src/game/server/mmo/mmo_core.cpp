@@ -6,6 +6,7 @@
 #include <game/server/player.h>
 
 #include <engine/external/xml/pugixml.hpp>
+#include <engine/shared/config.h>
 
 using namespace pugi;
 
@@ -189,13 +190,13 @@ int CMMOCore::GetExpForLevelUpWork(int WorkID, int Level)
 {
 	switch(WorkID)
 	{
-	case WORK_FARMER: return 10;
-	case WORK_MINER: return 100;
+	case WORK_FARMER: return g_Config.m_SvFarmXPCount;
+	case WORK_MINER: return g_Config.m_SvMineXPCount;
 	case WORK_MATERIAL: return 100;
 	case WORK_FISHER: return 100;
 	}
 
-	return 99999999;
+	return 999999;
 }
 
 const char *CMMOCore::GetWorkName(int WorkID)

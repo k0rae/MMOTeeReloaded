@@ -213,6 +213,9 @@ MACRO_CONFIG_INT(ClVideoShowDirection, cl_video_show_direction, 0, 0, 2, CFGFLAG
 MACRO_CONFIG_INT(ClVideoX264Crf, cl_video_crf, 18, 0, 51, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Set crf when encode video with libx264 (0 for highest quality, 51 for lowest)")
 MACRO_CONFIG_INT(ClVideoX264Preset, cl_video_preset, 5, 0, 9, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Set preset when encode video with libx264, default is 5 (medium), 0 is ultrafast, 9 is placebo (the slowest, not recommend)")
 
+MACRO_CONFIG_INT(SvFarmXPCount, sv_farm_xp_count, 10000, 0, 999999, CFGFLAG_SERVER, "Count of xp needed for level up farming")
+MACRO_CONFIG_INT(SvMineXPCount, sv_mine_xp_count, 100, 0, 999999, CFGFLAG_SERVER, "Count of xp needed for level up mining")
+
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly
 MACRO_CONFIG_INT(DbgDummies, dbg_dummies, 0, 0, 15, CFGFLAG_SERVER, "(Debug build only)")
