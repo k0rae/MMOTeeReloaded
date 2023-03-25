@@ -338,6 +338,14 @@ const char *CMMOCore::GetUpgradeName(int UpgradeID)
 
 int CMMOCore::GetUpgradeCost(int UpgradeID)
 {
+	switch(UpgradeID)
+	{
+	case UPGRADE_DAMAGE: return 2;
+	case UPGRADE_SPRAY: return 30;
+	case UPGRADE_AMMO: return 2;
+	case UPGRADE_FIRE_SPEED: return 2;
+	}
+
 	return 1;
 }
 

@@ -22,8 +22,9 @@ CPickupJob::CPickupJob(CGameWorld *pWorld, vec2 Pos, int Type) :
 
 CPickupJob::~CPickupJob()
 {
-	for (int i : m_aIDs)
-		Server()->SnapFreeID(i);
+	if (m_Type == PICKUP_JOB_TYPE_FARM)
+		for (int i : m_aIDs)
+			Server()->SnapFreeID(i);
 }
 
 void CPickupJob::Damage(int ClientID)

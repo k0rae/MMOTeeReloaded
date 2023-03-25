@@ -10,6 +10,8 @@
 
 #include <game/server/gamecontext.h>
 #include <game/server/gamemodes/DDRace.h>
+#include <game/generated/server_data.h>
+#include <game/server/mmo/dummies/dummy_base.h>
 
 CProjectile::CProjectile(
 	CGameWorld *pGameWorld,
@@ -60,44 +62,21 @@ vec2 CProjectile::GetPos(float Time)
 	switch(m_Type)
 	{
 	case WEAPON_GRENADE:
-		if(!m_TuneZone)
-		{
-			Curvature = GameServer()->Tuning()->m_GrenadeCurvature;
-			Speed = GameServer()->Tuning()->m_GrenadeSpeed;
-		}
-		else
-		{
-			Curvature = GameServer()->TuningList()[m_TuneZone].m_GrenadeCurvature;
-			Speed = GameServer()->TuningList()[m_TuneZone].m_GrenadeSpeed;
-		}
+		Curvature = GameServer()->Tuning()->m_GrenadeCurvature;
+		Speed = GameServer()->Tuning()->m_GrenadeSpeed;
 
 		break;
 
 	case WEAPON_SHOTGUN:
-		if(!m_TuneZone)
-		{
-			Curvature = GameServer()->Tuning()->m_ShotgunCurvature;
-			Speed = GameServer()->Tuning()->m_ShotgunSpeed;
-		}
-		else
-		{
-			Curvature = GameServer()->TuningList()[m_TuneZone].m_ShotgunCurvature;
-			Speed = GameServer()->TuningList()[m_TuneZone].m_ShotgunSpeed;
-		}
+		Curvature = GameServer()->Tuning()->m_ShotgunCurvature;
+		Speed = GameServer()->Tuning()->m_ShotgunSpeed;
 
 		break;
 
 	case WEAPON_GUN:
-		if(!m_TuneZone)
-		{
-			Curvature = GameServer()->Tuning()->m_GunCurvature;
-			Speed = GameServer()->Tuning()->m_GunSpeed;
-		}
-		else
-		{
-			Curvature = GameServer()->TuningList()[m_TuneZone].m_GunCurvature;
-			Speed = GameServer()->TuningList()[m_TuneZone].m_GunSpeed;
-		}
+		Curvature = GameServer()->Tuning()->m_GunCurvature;
+		Speed = GameServer()->Tuning()->m_GunSpeed;
+
 		break;
 	}
 
@@ -185,7 +164,21 @@ void CProjectile::Tick()
 		}
 		else if(m_Type == WEAPON_GUN)
 		{
-			GameServer()->CreateDamageInd(CurPos, -atan2(m_Direction.x, m_Direction.y), 10, (m_Owner != -1) ? TeamMask : CClientMask().set());
+			int Dmg = g_pData->m_Weapons.m_Gun.m_pBase->m_Damage;
+			if (pTargetChr)
+				pTargetChr->TakeDamage(vec2(0, 0), Dmg, m_Owner, WEAPON_GUN);
+			if (pTargetDummy)
+				pTargetDummy->TakeDamage(vec2(0, 0), Dmg, m_Owner, WEAPON_GUN);
+			m_MarkedForDestroy = true;
+			return;
+		}
+		else if(m_Type == WEAPON_SHOTGUN)
+		{
+			int Dmg = g_pData->m_Weapons.m_Shotgun.m_pBase->m_Damage;
+			if (pTargetChr)
+				pTargetChr->TakeDamage(vec2(0, 0), Dmg, m_Owner, WEAPON_SHOTGUN);
+			if (pTargetDummy)
+				pTargetDummy->TakeDamage(vec2(0, 0), Dmg, m_Owner, WEAPON_SHOTGUN);
 			m_MarkedForDestroy = true;
 			return;
 		}

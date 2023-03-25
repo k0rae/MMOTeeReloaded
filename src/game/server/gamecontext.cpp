@@ -3061,73 +3061,11 @@ void CGameContext::OnInit()
 	Server()->GetMapInfo(aMapName, sizeof(aMapName), &MapSize, &MapSha256, &MapCrc);
 	m_MapBugs = GetMapBugs(aMapName, MapSize, MapSha256);
 
-	// Reset Tunezones
-	CTuningParams TuningParams;
-	for(int i = 0; i < NUM_TUNEZONES; i++)
-	{
-		TuningList()[i] = TuningParams;
-		TuningList()[i].Set("gun_curvature", 0);
-		TuningList()[i].Set("gun_speed", 1400);
-		TuningList()[i].Set("shotgun_curvature", 0);
-		TuningList()[i].Set("shotgun_speed", 500);
-		TuningList()[i].Set("shotgun_speeddiff", 0);
-	}
-
-	for(int i = 0; i < NUM_TUNEZONES; i++)
-	{
-		// Send no text by default when changing tune zones.
-		m_aaZoneEnterMsg[i][0] = 0;
-		m_aaZoneLeaveMsg[i][0] = 0;
-	}
-	// Reset Tuning
-	if(g_Config.m_SvTuneReset)
-	{
-		ResetTuning();
-	}
-	else
-	{
-		Tuning()->Set("gun_speed", 1400);
-		Tuning()->Set("gun_curvature", 0);
-		Tuning()->Set("shotgun_speed", 500);
-		Tuning()->Set("shotgun_speeddiff", 0);
-		Tuning()->Set("shotgun_curvature", 0);
-	}
-
-	if(g_Config.m_SvDDRaceTuneReset)
-	{
-		g_Config.m_SvHit = 1;
-		g_Config.m_SvEndlessDrag = 0;
-		g_Config.m_SvOldLaser = 0;
-		g_Config.m_SvOldTeleportHook = 0;
-		g_Config.m_SvOldTeleportWeapons = 0;
-		g_Config.m_SvTeleportHoldHook = 0;
-		g_Config.m_SvTeam = SV_TEAM_ALLOWED;
-		g_Config.m_SvShowOthersDefault = SHOW_OTHERS_OFF;
-
-		for(auto &Switcher : Switchers())
-			Switcher.m_Initial = true;
-	}
-
 	Console()->ExecuteFile(g_Config.m_SvResetFile, -1);
 
 	LoadMapSettings();
 
 	m_MapBugs.Dump();
-
-	if(g_Config.m_SvSoloServer)
-	{
-		g_Config.m_SvTeam = SV_TEAM_FORCED_SOLO;
-		g_Config.m_SvShowOthersDefault = SHOW_OTHERS_ON;
-
-		Tuning()->Set("player_collision", 0);
-		Tuning()->Set("player_hooking", 0);
-
-		for(int i = 0; i < NUM_TUNEZONES; i++)
-		{
-			TuningList()[i].Set("player_collision", 0);
-			TuningList()[i].Set("player_hooking", 0);
-		}
-	}
 
 	m_pController = new CGameControllerDDRace(this);
 

@@ -194,7 +194,7 @@ void CCharacter::HandleJetpack()
 	if(m_Core.m_Jetpack && m_Core.m_ActiveWeapon == WEAPON_GUN)
 		FullAuto = true;
 
-	// check if we gonna fire
+	// check if we're going to fire
 	bool WillFire = false;
 	if(CountInput(m_LatestPrevInput.m_Fire, m_LatestInput.m_Fire).m_Presses)
 		WillFire = true;
@@ -209,22 +209,6 @@ void CCharacter::HandleJetpack()
 	if(!m_Core.m_aWeapons[m_Core.m_ActiveWeapon].m_Ammo || m_FreezeTime)
 	{
 		return;
-	}
-
-	switch(m_Core.m_ActiveWeapon)
-	{
-	case WEAPON_GUN:
-	{
-		if(m_Core.m_Jetpack)
-		{
-			float Strength;
-			if(!m_TuneZone)
-				Strength = GameServer()->Tuning()->m_JetpackStrength;
-			else
-				Strength = GameServer()->TuningList()[m_TuneZone].m_JetpackStrength;
-			TakeDamage(Direction * -1.0f * (Strength / 100.0f / 6.11f), 0, m_pPlayer->GetCID(), m_Core.m_ActiveWeapon);
-		}
-	}
 	}
 }
 
@@ -392,6 +376,10 @@ void CCharacter::FireWeapon()
 		FullAuto = true;
 	if(m_Core.m_Jetpack && m_Core.m_ActiveWeapon == WEAPON_GUN)
 		FullAuto = true;
+	if(m_Core.m_ActiveWeapon == WEAPON_HAMMER && m_pPlayer->m_AccInv.HaveItem(ITEM_AUTO_HAMMER))
+		FullAuto = true;
+	if(m_Core.m_ActiveWeapon == WEAPON_GUN && m_pPlayer->m_AccInv.HaveItem(ITEM_AUTO_GUN))
+		FullAuto = true;
 	// allow firing directly after coming out of freeze or being unfrozen
 	// by something
 	if(m_FrozenLastTick)
@@ -449,7 +437,85 @@ void CCharacter::FireWeapon()
 
 	vec2 ProjStartPos = m_Pos + Direction * GetProximityRadius() * 0.75f;
 
-	switch(m_Core.m_ActiveWeapon)
+	// Handle weapon fire
+	int Weapon = m_Core.m_ActiveWeapon;
+	if (Weapon == WEAPON_GUN ||
+		Weapon == WEAPON_SHOTGUN ||
+		Weapon == WEAPON_GRENADE)
+	{
+		// Get lifetime
+		int LifeTime;
+		if (Weapon == WEAPON_GUN)
+			LifeTime = Server()->TickSpeed() * GameServer()->Tuning()->m_GunLifetime;
+		else if (Weapon == WEAPON_SHOTGUN)
+			LifeTime = Server()->TickSpeed() * GameServer()->Tuning()->m_ShotgunLifetime;
+		else
+			LifeTime = Server()->TickSpeed() * GameServer()->Tuning()->m_GrenadeLifetime;
+
+		const float Fov = 60.f;
+		int Spray = m_pPlayer->m_AccUp.m_Spray + 1 + ((Weapon == WEAPON_SHOTGUN) ? 5 : 0);
+
+		// Create projectile
+		new CProjectile(
+			GameWorld(),
+			Weapon, // Type
+			m_pPlayer->GetCID(), // Owner
+			ProjStartPos, // Pos
+			Direction, // Dir
+			LifeTime, // Span
+			false, // Freeze
+			(Weapon == WEAPON_GRENADE), // Explosive
+			-1 // SoundImpact
+		);
+
+		// Spread
+		const float fovRad = (Fov / 2.f) * pi / 180.f;
+		const float aps = fovRad / Spray * 2;
+		const float a = angle(Direction);
+
+		for (int i = 1; i <= Spray; i++) {
+			float m = (i % 2 == 0) ? -1 : 1;
+			float a1 = a + aps * (i / 2) * m;
+			vec2 dir = direction(a1);
+
+			new CProjectile(
+				GameWorld(),
+				Weapon, // Type
+				m_pPlayer->GetCID(), // Owner
+				ProjStartPos, // Pos
+				dir, // Dir
+				LifeTime, // Span
+				false, // Freeze
+				(Weapon == WEAPON_GRENADE), // Explosive
+				-1 // SoundImpact
+			);
+
+			if (Weapon == WEAPON_SHOTGUN && m_pPlayer->m_AccInv.HaveItem(ITEM_SGUN))
+			{
+				new CProjectile(
+					GameWorld(),
+					WEAPON_GUN, // Type
+					m_pPlayer->GetCID(), // Owner
+					ProjStartPos, // Pos
+					dir, // Dir
+					LifeTime, // Span
+					false, // Freeze
+					false, // Explosive
+					-1 // SoundImpact
+				);
+			}
+		}
+
+		// Make a sound :O
+		if (Weapon == WEAPON_GUN)
+			GameServer()->CreateSound(m_Pos, SOUND_GUN_FIRE);
+		else if (Weapon == WEAPON_SHOTGUN)
+			GameServer()->CreateSound(m_Pos, SOUND_SHOTGUN_FIRE);
+		else if (Weapon == WEAPON_GRENADE)
+			GameServer()->CreateSound(m_Pos, SOUND_GRENADE_FIRE);
+	}
+
+	switch(Weapon)
 	{
 	case WEAPON_HAMMER:
 	{
@@ -559,70 +625,6 @@ void CCharacter::FireWeapon()
 				FireDelay = GameServer()->TuningList()[m_TuneZone].m_HammerHitFireDelay;
 			m_ReloadTimer = FireDelay * Server()->TickSpeed() / 1000;
 		}
-	}
-	break;
-
-	case WEAPON_GUN:
-	{
-		if(!m_Core.m_Jetpack || !m_pPlayer->m_NinjaJetpack || m_Core.m_HasTelegunGun)
-		{
-			int Lifetime;
-			if(!m_TuneZone)
-				Lifetime = (int)(Server()->TickSpeed() * GameServer()->Tuning()->m_GunLifetime);
-			else
-				Lifetime = (int)(Server()->TickSpeed() * GameServer()->TuningList()[m_TuneZone].m_GunLifetime);
-
-			new CProjectile(
-				GameWorld(),
-				WEAPON_GUN, //Type
-				m_pPlayer->GetCID(), //Owner
-				ProjStartPos, //Pos
-				Direction, //Dir
-				Lifetime, //Span
-				false, //Freeze
-				false, //Explosive
-				-1 //SoundImpact
-			);
-
-			GameServer()->CreateSound(m_Pos, SOUND_GUN_FIRE, TeamMask());
-		}
-	}
-	break;
-
-	case WEAPON_SHOTGUN:
-	{
-		float LaserReach;
-		if(!m_TuneZone)
-			LaserReach = GameServer()->Tuning()->m_LaserReach;
-		else
-			LaserReach = GameServer()->TuningList()[m_TuneZone].m_LaserReach;
-
-		new CLaser(&GameServer()->m_World, m_Pos, Direction, LaserReach, m_pPlayer->GetCID(), WEAPON_SHOTGUN);
-		GameServer()->CreateSound(m_Pos, SOUND_SHOTGUN_FIRE, TeamMask());
-	}
-	break;
-
-	case WEAPON_GRENADE:
-	{
-		int Lifetime;
-		if(!m_TuneZone)
-			Lifetime = (int)(Server()->TickSpeed() * GameServer()->Tuning()->m_GrenadeLifetime);
-		else
-			Lifetime = (int)(Server()->TickSpeed() * GameServer()->TuningList()[m_TuneZone].m_GrenadeLifetime);
-
-		new CProjectile(
-			GameWorld(),
-			WEAPON_GRENADE, //Type
-			m_pPlayer->GetCID(), //Owner
-			ProjStartPos, //Pos
-			Direction, //Dir
-			Lifetime, //Span
-			false, //Freeze
-			true, //Explosive
-			SOUND_GRENADE_EXPLODE //SoundImpact
-		); //SoundImpact
-
-		GameServer()->CreateSound(m_Pos, SOUND_GRENADE_FIRE, TeamMask());
 	}
 	break;
 

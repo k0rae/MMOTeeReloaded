@@ -66,4 +66,6 @@
     <Item ID="43" Type="4" Rarity="0" Name="Shotgun"/>
     <Item ID="44" Type="4" Rarity="0" Name="Laser"/>
     <Item ID="45" Type="4" Rarity="1" Name="SGun"/>
+    <Item ID="46" Type="4" Rarity="0" Name="Auto hammer"/>
+    <Item ID="47" Type="4" Rarity="0" Name="Auto gun"/>
 </Items>

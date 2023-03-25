@@ -28,9 +28,9 @@ MACRO_TUNING_PARAM(GunSpeed, gun_speed, 2200.0f, "Gun speed")
 MACRO_TUNING_PARAM(GunLifetime, gun_lifetime, 2.0f, "Gun lifetime")
 
 MACRO_TUNING_PARAM(ShotgunCurvature, shotgun_curvature, 1.25f, "Shotgun curvature")
-MACRO_TUNING_PARAM(ShotgunSpeed, shotgun_speed, 2750.0f, "Shotgun speed")
-MACRO_TUNING_PARAM(ShotgunSpeeddiff, shotgun_speeddiff, 0.8f, "(UNUSED) Speed difference between shotgun bullets")
-MACRO_TUNING_PARAM(ShotgunLifetime, shotgun_lifetime, 0.20f, "(UNUSED) Shotgun lifetime")
+MACRO_TUNING_PARAM(ShotgunSpeed, shotgun_speed, 1600.f, "Shotgun speed")
+MACRO_TUNING_PARAM(ShotgunSpeeddiff, shotgun_speeddiff, 0.8f, "Speed difference between shotgun bullets")
+MACRO_TUNING_PARAM(ShotgunLifetime, shotgun_lifetime, 0.3f, "Shotgun lifetime")
 
 MACRO_TUNING_PARAM(GrenadeCurvature, grenade_curvature, 7.0f, "Grenade curvature")
 MACRO_TUNING_PARAM(GrenadeSpeed, grenade_speed, 1000.0f, "Grenade speed")
@@ -46,8 +46,6 @@ MACRO_TUNING_PARAM(PlayerCollision, player_collision, 1, "Enable player collisio
 MACRO_TUNING_PARAM(PlayerHooking, player_hooking, 1, "Enable player vs player hooking")
 
 //ddnet tuning
-MACRO_TUNING_PARAM(JetpackStrength, jetpack_strength, 400.0f, "Jetpack pistol strength")
-MACRO_TUNING_PARAM(ShotgunStrength, shotgun_strength, 10.0f, "Shotgun pull strength")
 MACRO_TUNING_PARAM(ExplosionStrength, explosion_strength, 6.0f, "Explosion strength (grenade for example)")
 MACRO_TUNING_PARAM(HammerStrength, hammer_strength, 1.0f, "Hammer strength")
 MACRO_TUNING_PARAM(HookDuration, hook_duration, 1.25f, "Hook duration")
