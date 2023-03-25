@@ -380,6 +380,16 @@ void CMMOCore::BuyItem(int ClientID, int ItemID)
 	pPly->m_AccData.m_Money -= it->m_Cost;
 }
 
+bool CMMOCore::GetEquippedItem(int ClientID, int ItemType)
+{
+	return false;
+}
+
+void CMMOCore::SetEquippedItem(int ClientID, int ItemID)
+{
+
+}
+
 const char *CMMOCore::GetUpgradeName(int UpgradeID)
 {
 	switch(UpgradeID)

@@ -75,6 +75,8 @@ public:
 	void UseItem(int ClientID, int ItemID, int Count);
 	void BuyItem(int ClientID, int ItemID);
 	std::vector<SShopEntry> &GetShopItems() { return m_vShopItems; }
+	bool GetEquippedItem(int ClientID, int ItemType);
+	void SetEquippedItem(int ClientID, int ItemID);
 
 	const char *GetUpgradeName(int UpgradeID);
 	int GetUpgradeCost(int UpgradeID);
