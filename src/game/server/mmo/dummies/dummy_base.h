@@ -32,6 +32,7 @@ class CDummyBase : public CEntity
 	int m_ReloadTimer;
 
 	char m_aName[MAX_NAME_LENGTH];
+	char m_aFormatedName[MAX_NAME_LENGTH];
 	char m_aClan[MAX_CLAN_LENGTH];
 
 	int m_Health;
@@ -64,6 +65,7 @@ public:
 	void SetName(const char *pName) { str_copy(m_aName, pName); }
 	void SetClan(const char *pClan) { str_copy(m_aClan, pClan); }
 	void SetTeeInfo(CTeeInfo Info) { m_TeeInfo = Info; }
+	void FormatLevelName() { str_format(m_aFormatedName, sizeof(m_aFormatedName), "%d:%s", m_Level, m_aName); };
 
 	// Getters
 	bool IsAlive() { return m_Alive; }

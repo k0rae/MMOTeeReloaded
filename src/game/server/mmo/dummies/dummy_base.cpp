@@ -25,9 +25,14 @@ CDummyBase::CDummyBase(CGameWorld *pWorld, vec2 Pos, int DummyType, int DummyAIT
 	m_DummyType = DummyType;
 	m_DefaultEmote = EMOTE_NORMAL;
 	m_DummyAIType = DummyAIType;
+	m_Level = 0;
+	m_MaxHealth = 10;
+	m_MaxArmor = 10;
+	m_Damage = 0;
 
 	str_copy(m_aName, "[NULL BOT]");
 	str_copy(m_aClan, "");
+	m_aFormatedName[0] = '\0';
 
 	// Create dummy controller
 	switch(m_DummyAIType)
@@ -61,8 +66,11 @@ CDummyBase::~CDummyBase()
 
 void CDummyBase::Spawn()
 {
-	m_Health = 10;
-	m_Armor = 0;
+	if (m_Alive)
+		Die(-1);
+
+	m_Health = m_MaxHealth;
+	m_Armor = m_MaxArmor;
 	m_Alive = true;
 	m_SpawnTick = 0;
 	m_EmoteType = EMOTE_NORMAL;
@@ -162,6 +170,68 @@ void CDummyBase::FireWeapon()
 
 	vec2 ProjStartPos = m_Pos + Direction * 28.f * 0.75f;
 
+	int Weapon = m_Core.m_ActiveWeapon;
+	if (Weapon == WEAPON_GUN ||
+		Weapon == WEAPON_SHOTGUN ||
+		Weapon == WEAPON_GRENADE)
+	{
+		// Get lifetime
+		int LifeTime;
+		if (Weapon == WEAPON_GUN)
+			LifeTime = Server()->TickSpeed() * GameServer()->Tuning()->m_GunLifetime;
+		else if (Weapon == WEAPON_SHOTGUN)
+			LifeTime = Server()->TickSpeed() * GameServer()->Tuning()->m_ShotgunLifetime;
+		else
+			LifeTime = Server()->TickSpeed() * GameServer()->Tuning()->m_GrenadeLifetime;
+
+		const float Fov = 60.f;
+		int Spray = 1 + ((Weapon == WEAPON_SHOTGUN) ? 5 : 0);
+
+		// Create projectile
+		new CProjectile(
+			GameWorld(),
+			Weapon, // Type
+			-1, // Owner
+			ProjStartPos, // Pos
+			Direction, // Dir
+			LifeTime, // Span
+			false, // Freeze
+			(Weapon == WEAPON_GRENADE), // Explosive
+			-1 // SoundImpact
+		);
+
+		// Spread
+		const float fovRad = (Fov / 2.f) * pi / 180.f;
+		const float aps = fovRad / Spray * 2;
+		const float a = angle(Direction);
+
+		for (int i = 1; i <= Spray; i++) {
+			float m = (i % 2 == 0) ? -1 : 1;
+			float a1 = a + aps * (i / 2) * m;
+			vec2 dir = direction(a1);
+
+			new CProjectile(
+				GameWorld(),
+				Weapon, // Type
+				-1, // Owner
+				ProjStartPos, // Pos
+				dir, // Dir
+				LifeTime, // Span
+				false, // Freeze
+				(Weapon == WEAPON_GRENADE), // Explosive
+				-1 // SoundImpact
+			);
+		}
+
+		// Make a sound :O
+		if (Weapon == WEAPON_GUN)
+			GameServer()->CreateSound(m_Pos, SOUND_GUN_FIRE);
+		else if (Weapon == WEAPON_SHOTGUN)
+			GameServer()->CreateSound(m_Pos, SOUND_SHOTGUN_FIRE);
+		else
+			GameServer()->CreateSound(m_Pos, SOUND_GRENADE_FIRE);
+	}
+
 	switch(m_Core.m_ActiveWeapon)
 	{
 	case WEAPON_HAMMER:
@@ -201,7 +271,7 @@ void CDummyBase::FireWeapon()
 			vec2 Temp = pTarget->GetCore().m_Vel + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f;
 			Temp = ClampVel(pTarget->m_MoveRestrictions, Temp);
 			Temp -= pTarget->GetCore().m_Vel;
-			pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, 3,
+			pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, 3 + m_Damage,
 				-1, m_Core.m_ActiveWeapon);
 
 			Hits++;
@@ -213,55 +283,6 @@ void CDummyBase::FireWeapon()
 			float FireDelay = GameServer()->Tuning()->m_HammerHitFireDelay;
 			m_ReloadTimer = FireDelay * Server()->TickSpeed() / 1000;
 		}
-	}
-	break;
-
-	case WEAPON_GUN:
-	{
-		int Lifetime = (int)(Server()->TickSpeed() * GameServer()->Tuning()->m_GunLifetime);
-
-		new CProjectile(
-			GameWorld(),
-			WEAPON_GUN, //Type
-			-1, //Owner
-			ProjStartPos, //Pos
-			Direction, //Dir
-			Lifetime, //Span
-			false, //Freeze
-			false, //Explosive
-			-1 //SoundImpact
-		);
-
-		GameServer()->CreateSound(m_Pos, SOUND_GUN_FIRE);
-	}
-	break;
-
-	case WEAPON_SHOTGUN:
-	{
-		float LaserReach = GameServer()->Tuning()->m_LaserReach;
-
-		new CLaser(&GameServer()->m_World, m_Pos, Direction, LaserReach, -1, WEAPON_SHOTGUN);
-		GameServer()->CreateSound(m_Pos, SOUND_SHOTGUN_FIRE);
-	}
-	break;
-
-	case WEAPON_GRENADE:
-	{
-		int Lifetime = (int)(Server()->TickSpeed() * GameServer()->Tuning()->m_GrenadeLifetime);
-
-		new CProjectile(
-			GameWorld(),
-			WEAPON_GRENADE, //Type
-			-1, //Owner
-			ProjStartPos, //Pos
-			Direction, //Dir
-			Lifetime, //Span
-			false, //Freeze
-			true, //Explosive
-			SOUND_GRENADE_EXPLODE //SoundImpact
-		); //SoundImpact
-
-		GameServer()->CreateSound(m_Pos, SOUND_GRENADE_FIRE);
 	}
 	break;
 
@@ -336,7 +357,10 @@ void CDummyBase::Snap(int SnappingClient)
 	if(!pClientInfo)
 		return;
 
-	StrToInts(&pClientInfo->m_Name0, 4, m_aName);
+	if (m_aFormatedName[0] != '\0')
+		StrToInts(&pClientInfo->m_Name0, 4, m_aFormatedName);
+	else
+		StrToInts(&pClientInfo->m_Name0, 4, m_aName);
 	StrToInts(&pClientInfo->m_Clan0, 3, m_aClan);
 	StrToInts(&pClientInfo->m_Skin0, 6, m_TeeInfo.m_aSkinName);
 	pClientInfo->m_Country = 0;

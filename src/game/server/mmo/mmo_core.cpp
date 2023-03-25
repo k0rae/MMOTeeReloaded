@@ -134,6 +134,10 @@ void CMMOCore::CreateDummy(vec2 Pos, SBotData Data)
 	pNewDummy->m_MaxHealth = Data.m_HP;
 	pNewDummy->m_MaxArmor = Data.m_Armor;
 	pNewDummy->m_Damage = Data.m_Damage;
+	pNewDummy->FormatLevelName();
+
+	// Respawn bot with new stats
+	pNewDummy->Spawn();
 }
 
 void CMMOCore::OnMapBotPoint(vec2 Pos, const char *pPointName)
