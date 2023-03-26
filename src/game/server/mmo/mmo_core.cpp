@@ -570,7 +570,7 @@ int CMMOCore::GetUpgradeCost(int UpgradeID)
 int CMMOCore::_GetMinerLevelID(int Level)
 {
 	int a = floor(Level / 50);
-	int b = ITEM_COPPER;
+	int b;
 	const int StartID = ITEM_COPPER - 1;
 
 	switch(a)

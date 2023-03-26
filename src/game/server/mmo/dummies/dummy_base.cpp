@@ -96,13 +96,15 @@ void CDummyBase::Die(int Killer)
 		if (pPly && pPly->m_LoggedIn)
 			Level = pPly->m_AccData.m_Level;
 
+		const int Count = (Level / 1.1f) / sqrt(Level) * 1.4f * 10;
+
 		int RandomForce = 3 - rand() % 7;
 		new CPickupPhys(
 			GameWorld(),
 			m_Pos,
 			m_Core.m_Vel + vec2(RandomForce, RandomForce),
 			(rand() % 2 == 0) ? PICKUP_PHYS_TYPE_XP : PICKUP_PHYS_TYPE_MONEY,
-			10 * sqrt(Level) * (sqrt(m_Level) * 2));
+			Count);
 	}
 
 	GameServer()->CreateDeath(m_Pos, 0);

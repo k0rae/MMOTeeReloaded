@@ -11,6 +11,8 @@ CMoneyBag::CMoneyBag(CGameWorld *pWorld, vec2 Pos) :
 	CEntity(pWorld, CGameWorld::ENTTYPE_MONEY_BAG, Pos, 20.f)
 {
 	m_RespawnTick = Server()->Tick() + Server()->TickSpeed() * (rand() % 300 + 60 * 5);
+
+	GameWorld()->InsertEntity(this);
 }
 
 void CMoneyBag::Tick()
