@@ -22,6 +22,7 @@
 // Components
 #include "mmo/components/account_manager.h"
 #include "mmo/components/vote_menu.h"
+#include "mmo/components/admin_commands.h"
 
 #include "mmo/mmo_core.h"
 
@@ -488,6 +489,7 @@ public:
 
 	CAccountManager m_AccountManager;
 	CVoteMenu m_VoteMenu;
+	CAdminCommands m_AdminCommands;
 
 	CMMOCore m_MMOCore;
 
@@ -502,8 +504,6 @@ private:
 	} m_aClientsBroadcast[MAX_CLIENTS];
 
 	static void ConCreateDummy(IConsole::IResult *pResult, void *pUserData);
-	static void ConExecuteSQL(IConsole::IResult *pResult, void *pUserData);
-	static void ConExecuteSQLGet(IConsole::IResult *pResult, void *pUserData);
 };
 
 #endif

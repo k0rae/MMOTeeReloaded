@@ -342,7 +342,17 @@ bool CAccountManager::AdminExecThread(IDbConnection *pSqlServer, const ISqlData 
 		}
 
 		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "query returned 1 row: %d", pSqlServer->GetInt(1));
+		if (pData->m_RetType == 0)
+		{
+			str_format(aBuf, sizeof(aBuf), "query returned 1 row: %d", pSqlServer->GetInt(1));
+		}
+		else
+		{
+			char aBuf2[256];
+			pSqlServer->GetString(1, aBuf2, sizeof(aBuf2));
+			str_format(aBuf, sizeof(aBuf), "query returned 1 row: %s", aBuf2);
+		}
+
 		str_copy(pResult->m_aMessage, aBuf);
 	}
 	else
@@ -371,16 +381,17 @@ void CAccountManager::ExecAdminSQL(int ClientID, const char *pQuery)
 	DBPool()->Execute(AdminExecThread, std::move(Request), "Admin Exec");
 }
 
-void CAccountManager::ExecAdminSQLGet(int ClientID, const char *pQuery)
+void CAccountManager::ExecAdminSQLGet(int ClientID, int RetType, const char *pQuery)
 {
 	auto pResult = std::make_shared<SAdminExecResult>();
 	pResult->m_ClientID = ClientID;
 	m_vpAdminExecResults.push_back(pResult);
 
-	auto Request = std::make_unique<SAdminExecRequest>(pResult);
-	str_copy(Request->m_aQuery, pQuery);
-	Request->m_IsGet = true;
-	DBPool()->Execute(AdminExecThread, std::move(Request), "Admin Exec Get");
+	auto pRequest = std::make_unique<SAdminExecRequest>(pResult);
+	str_copy(pRequest->m_aQuery, pQuery);
+	pRequest->m_IsGet = true;
+	pRequest->m_RetType = RetType;
+	DBPool()->Execute(AdminExecThread, std::move(pRequest), "Admin Exec Get");
 }
 
 void CAccountManager::ChatRegister(IConsole::IResult *pResult, void *pUserData)
@@ -508,6 +519,22 @@ void CAccountManager::OnTick()
 		}
 
 		m_vpLoginResults.erase(m_vpLoginResults.begin() + i);
+	}
+
+	for (unsigned long i = 0; i < m_vpAdminExecResults.size(); i++)
+	{
+		auto &pResult = m_vpAdminExecResults[i];
+
+		if (!pResult->m_Completed)
+			continue;
+		CPlayer *pPly = GameServer()->m_apPlayers[pResult->m_ClientID];
+		if (!pPly)
+			continue;
+
+		if (pResult->m_aMessage[0] != '\0')
+			Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "sql", pResult->m_aMessage);
+
+		m_vpAdminExecResults.erase(m_vpAdminExecResults.begin() + i);
 	}
 
 	// Auto account save

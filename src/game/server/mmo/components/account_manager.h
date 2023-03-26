@@ -39,7 +39,7 @@ public:
 	void Register(int ClientID, const char *pName, const char *pPasswordHash);
 	void Login(int ClientID, const char *pName, const char *pPasswordHash);
 	void ExecAdminSQL(int ClientID, const char *pQuery);
-	void ExecAdminSQLGet(int ClientID, const char *pQuery);
+	void ExecAdminSQLGet(int ClientID, int RetType, const char *pQuery);
 
 	void Save(int ClientID);
 };
@@ -134,6 +134,7 @@ struct SAdminExecRequest : ISqlData
 	}
 
 	bool m_IsGet;
+	int m_RetType;
 	char m_aQuery[1024];
 };
 

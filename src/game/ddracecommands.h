@@ -63,7 +63,5 @@ CONSOLE_COMMAND("freezehammer", "v[id]", CFGFLAG_SERVER | CMDFLAG_TEST, ConFreez
 CONSOLE_COMMAND("unfreezehammer", "v[id]", CFGFLAG_SERVER | CMDFLAG_TEST, ConUnFreezeHammer, this, "Removes Freeze Hammer from a player")
 
 CONSOLE_COMMAND("create_dummy", "", CFGFLAG_SERVER, ConCreateDummy, this, "")
-CONSOLE_COMMAND("exec_sql", "", CFGFLAG_SERVER, ConExecuteSQL, this, "")
-CONSOLE_COMMAND("exec_sql_get", "", CFGFLAG_SERVER, ConExecuteSQLGet, this, "")
 
 #undef CONSOLE_COMMAND

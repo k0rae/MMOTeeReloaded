@@ -3153,8 +3153,9 @@ void CGameContext::OnInit()
 	}
 
 	m_vpComponents.insert(m_vpComponents.end(), {
-		&m_AccountManager,
-		&m_VoteMenu
+								&m_AccountManager,
+								&m_VoteMenu,
+								&m_AdminCommands
 	});
 
 	for(auto &pComponent : m_vpComponents)
