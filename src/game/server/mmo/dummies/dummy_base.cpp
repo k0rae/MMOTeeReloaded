@@ -301,6 +301,8 @@ void CDummyBase::HandleTiles(int Tile)
 {
 	if (Tile == TILE_OFF_DAMAGE)
 		Die(-1);
+	if (Tile == TILE_ON_DAMAGE)
+		Die(-1);
 }
 
 void CDummyBase::Destroy()
