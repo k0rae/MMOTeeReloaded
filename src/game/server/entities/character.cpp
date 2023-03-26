@@ -1023,8 +1023,17 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 	if (m_NoDamage)
 		return false;
 
+	CPlayer *pFromPly = 0x0;
+
 	if (From >= 0)
+	{
+		pFromPly = GameServer()->m_apPlayers[From];
+
+		if (m_pPlayer->m_AccData.m_Level < 20 || pFromPly->m_AccData.m_Level < 20)
+			return false;
+
 		Dmg += MMOCore()->GetPlusDamage(From);
+	}
 
 	if(Dmg)
 	{
