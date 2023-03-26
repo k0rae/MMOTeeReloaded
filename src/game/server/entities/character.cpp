@@ -2044,11 +2044,13 @@ void CCharacter::HandleMMOTiles(int Tile)
 	else if (Tile == TILE_CHAIR_10 && Server()->Tick() % Server()->TickSpeed() == 0)
 	{
 		m_pPlayer->AddEXP(10);
+		m_pPlayer->m_AccData.m_Money++;
 		GameServer()->SendMMOBroadcast(ClientID, 1.f, "+10 EXP FROM CHAIR");
 	}
 	else if (Tile == TILE_CHAIR_15 && Server()->Tick() % Server()->TickSpeed() == 0)
 	{
 		m_pPlayer->AddEXP(15);
+		m_pPlayer->m_AccData.m_Money++;
 		GameServer()->SendMMOBroadcast(ClientID, 1.f, "+15 EXP FROM CHAIR");
 	}
 
