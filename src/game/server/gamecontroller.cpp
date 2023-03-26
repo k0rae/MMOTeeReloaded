@@ -4,6 +4,7 @@
 
 #include <game/generated/protocol.h>
 #include <game/mapitems.h>
+#include <game/server/mmo/entities/money_bag.h>
 #include <game/teamscore.h>
 
 #include "gamecontext.h"
@@ -228,6 +229,8 @@ bool IGameController::OnQuadEntity(const char *pLayerName, vec2 Pivot, vec2 *pPo
 		new CPickupJob(&GameServer()->m_World, Pos, PICKUP_JOB_TYPE_MINE);
 	else if (!str_comp(pLayerName, "Wood"))
 		new CPickupJob(&GameServer()->m_World, Pos, PICKUP_JOB_TYPE_WOOD);
+	else if (!str_comp(pLayerName, "MoneyBag"))
+		new CMoneyBag(&GameServer()->m_World, Pos);
 
 	return false;
 }

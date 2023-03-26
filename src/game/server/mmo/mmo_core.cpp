@@ -399,11 +399,19 @@ void CMMOCore::UseItem(int ClientID, int ItemID, int Count)
 		pPly->AddEXP(50 * Count);
 		Value += 50 * Count;
 	}
+	else if (ItemID == ITEM_MONEY_BAG)
+	{
+		int Rand = (rand() % 5 + 1) * Count;
+		pPly->m_AccData.m_Money += Rand;
+		Value = Rand;
+	}
 
 	// Notify clients
 	char aResultText[256] = {'\0'};
 	if (ItemID >= ITEM_CARROT && ItemID <= ITEM_TOMATO)
 		str_format(aResultText, sizeof(aResultText), "%s used %s x%d and got %d exp", Server()->ClientName(ClientID), GetItemName(ItemID), Count, Value);
+	else if (ItemID == ITEM_MONEY_BAG)
+		str_format(aResultText, sizeof(aResultText), "%s used %s x%d and got %d money", Server()->ClientName(ClientID), GetItemName(ItemID), Count, Value);
 
 	GameServer()->SendChatTarget(-1, aResultText);
 

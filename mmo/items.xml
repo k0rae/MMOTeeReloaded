@@ -95,4 +95,6 @@
     <Item ID="67" Type="7" Rarity="2" Name="Titanium feet"/>
     <Item ID="68" Type="7" Rarity="2" Name="Dragon feet"/>
     <Item ID="69" Type="7" Rarity="3" Name="Astralium feet"/>
+
+    <Item ID="70" Type="2" Rarity="0" Name="Money bag"/>
 </Items>
