@@ -20,7 +20,7 @@
     <Armor>
         <Body ID="49" Color="9240429"/>
         <Feet ID="60" Color="9240429"/>
-        <Stats Health="750" Armor="100"/>
+        <Stats Health="75" Armor="100"/>
     </Armor>
     <!-- Gold -->
     <Armor>

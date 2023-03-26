@@ -303,8 +303,11 @@ void CDummyBase::HandleTiles(int Tile)
 {
 	if (Tile == TILE_OFF_DAMAGE)
 		Die(-1);
-	if (Tile == TILE_ON_DAMAGE)
+	else if (Tile == TILE_ON_DAMAGE)
 		Die(-1);
+
+	else if (Tile == TILE_WATER)
+		m_Core.m_Vel.y -= GameServer()->Tuning()->m_Gravity * 1.1f;
 }
 
 void CDummyBase::Destroy()
