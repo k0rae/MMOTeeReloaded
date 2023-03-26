@@ -24,7 +24,7 @@ void CMoneyBag::Tick()
 	if (pChr)
 	{
 		int Count = rand() % 5 + 1;
-		int Bonus = Server()->Tick() - m_RespawnTick / 60;
+		int Bonus = (Server()->Tick() - m_RespawnTick) / 60;
 		int ClientID = pChr->GetPlayer()->GetCID();
 
 		char aBuf[256];
