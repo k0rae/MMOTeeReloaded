@@ -42,6 +42,19 @@ struct SArmorData
 	int m_Armor;
 };
 
+struct SCraftIngredient
+{
+	int m_ID;
+	int m_Count;
+};
+
+struct SCraftData
+{
+	int m_Type;
+	int m_ID;
+	std::vector<SCraftIngredient> m_vIngredients;
+};
+
 class CGameContext;
 
 class CMMOCore
@@ -58,6 +71,7 @@ class CMMOCore
 	std::vector<SShopEntry> m_vShopItems;
 	std::vector<SBotData> m_vBotDatas;
 	std::vector<SArmorData> m_vArmorDatas;
+	std::vector<SCraftData> m_vCrafts;
 
 	SInvItem *GetItem(int ItemID);
 
@@ -107,6 +121,10 @@ public:
 	int ArmorHealth(int ItemID);
 	int ArmorDefense(int ItemID);
 	void ResetTeeInfo(int ClientID);
+
+	// Craft
+	void CraftItem(int ClientID, int ItemID, int Count);
+	std::vector<SCraftData> &GetCrafts() { return m_vCrafts; };
 };
 
 #endif // GAME_SERVER_MMO_MMO_CORE_H

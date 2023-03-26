@@ -2052,4 +2052,21 @@ void CCharacter::HandleMMOTiles(int Tile)
 		GameServer()->m_VoteMenu.SetMenu(ClientID, MENU_MAIN);
 		GameServer()->m_VoteMenu.RebuildMenu(ClientID);
 	}
+
+	if (Tile == TILE_CRAFT_ON && !m_InCraft)
+	{
+		m_InCraft = true;
+		GameServer()->SendMMOBroadcast(ClientID, 1.5f, "YOU'RE IN CRAFT ROOM NOW");
+
+		GameServer()->m_VoteMenu.SetMenu(ClientID, MENU_MAIN);
+		GameServer()->m_VoteMenu.RebuildMenu(ClientID);
+	}
+	else if (Tile == TILE_CRAFT_OFF && m_InCraft)
+	{
+		m_InCraft = false;
+		GameServer()->SendMMOBroadcast(ClientID, 1.5f, "YOU'RE NOT IN CRAFT ROOM NOW");
+
+		GameServer()->m_VoteMenu.SetMenu(ClientID, MENU_MAIN);
+		GameServer()->m_VoteMenu.RebuildMenu(ClientID);
+	}
 }

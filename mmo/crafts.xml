@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Crafts>
+    <!-- Craft types: -->
+    <!-- 0 - Resource -->
+    <!-- 1 - Work -->
+    <!-- 2 - Weapon -->
+    <!-- 3 - Armor -->
+
+    <!-- Resources -->
+    <!-- Mithril ingot -->
+    <Craft Type="0" ResultID="35">
+        <Ingredient ID="16" Count="5"/> <!-- Mithril ore -->
+    </Craft>
+    <!-- Orihalcium ingot -->
+    <Craft Type="0" ResultID="36">
+        <Ingredient ID="17" Count="5"/> <!-- Orihalcium ore -->
+    </Craft>
+    <!-- Adamantite ingot -->
+    <Craft Type="0" ResultID="37">
+        <Ingredient ID="18" Count="5"/> <!-- Adamantite ore -->
+    </Craft>
+    <!-- Titanium ingot -->
+    <Craft Type="0" ResultID="38">
+        <Ingredient ID="19" Count="5"/> <!-- Titanium ore -->
+    </Craft>
+    <!-- Dragon ingot -->
+    <Craft Type="0" ResultID="39">
+        <Ingredient ID="20" Count="5"/> <!-- Dragon ore -->
+    </Craft>
+    <!-- Astralium ingot -->
+    <Craft Type="0" ResultID="40">
+        <Ingredient ID="21" Count="5"/> <!-- Astralium ore -->
+    </Craft>
+
+    <!-- Work -->
+    <!-- Copper pickaxe -->
+    <Craft Type="1" ResultID="24">
+        <Ingredient ID="11" Count="40"/> <!-- Copper ore -->
+        <Ingredient ID="0" Count="10"/> <!-- Wood -->
+    </Craft>
+    <!-- Iron pickaxe -->
+    <Craft Type="1" ResultID="25">
+        <Ingredient ID="12" Count="40"/> <!-- Iron ore -->
+        <Ingredient ID="0" Count="10"/> <!-- Wood -->
+    </Craft>
+    <!-- Gold pickaxe -->
+    <Craft Type="1" ResultID="26">
+        <Ingredient ID="13" Count="40"/> <!-- Gold ore -->
+        <Ingredient ID="0" Count="10"/> <!-- Wood -->
+    </Craft>
+    <!-- Diamond pickaxe -->
+    <Craft Type="1" ResultID="27">
+        <Ingredient ID="14" Count="50"/> <!-- Diamond ore -->
+        <Ingredient ID="0" Count="10"/> <!-- Wood -->
+    </Craft>
+    <!-- Obsidian pickaxe -->
+    <Craft Type="1" ResultID="28">
+        <Ingredient ID="15" Count="50"/> <!-- Obsidian -->
+        <Ingredient ID="0" Count="15"/> <!-- Wood -->
+    </Craft>
+    <!-- Mithril pickaxe -->
+    <Craft Type="1" ResultID="29">
+        <Ingredient ID="35" Count="20"/> <!-- Mithril ingot -->
+        <Ingredient ID="0" Count="25"/> <!-- Wood -->
+    </Craft>
+    <!-- Orihalcium pickaxe -->
+    <Craft Type="1" ResultID="30">
+        <Ingredient ID="36" Count="20"/> <!-- Orihalcium ingot -->
+        <Ingredient ID="0" Count="30"/> <!-- Wood -->
+    </Craft>
+    <!-- Adamantite pickaxe -->
+    <Craft Type="1" ResultID="31">
+        <Ingredient ID="37" Count="20"/> <!-- Adamantite ingot -->
+        <Ingredient ID="0" Count="35"/> <!-- Wood -->
+    </Craft>
+    <!-- Titanium pickaxe -->
+    <Craft Type="1" ResultID="32">
+        <Ingredient ID="38" Count="20"/> <!-- Titanium ingot -->
+        <Ingredient ID="0" Count="40"/> <!-- Wood -->
+    </Craft>
+    <!-- Dragon pickaxe -->
+    <Craft Type="1" ResultID="33">
+        <Ingredient ID="39" Count="30"/> <!-- Dragon ingot -->
+        <Ingredient ID="0" Count="45"/> <!-- Wood -->
+    </Craft>
+    <!-- Astralium pickaxe -->
+    <Craft Type="1" ResultID="34">
+        <Ingredient ID="40" Count="30"/> <!-- Astralium ingot -->
+        <Ingredient ID="0" Count="50"/> <!-- Wood -->
+    </Craft>
+
+    <!-- Weapon -->
+
+    <!-- Armor -->
+    <!-- Copper body -->
+    <Craft Type="3" ResultID="48">
+        <Ingredient ID="11" Count="500"/> <!-- Copper ore -->
+        <Ingredient ID="0" Count="150"/> <!-- Wood -->
+    </Craft>
+    <!-- Copper feet -->
+    <Craft Type="3" ResultID="59">
+        <Ingredient ID="11" Count="400"/> <!-- Copper ore -->
+        <Ingredient ID="0" Count="120"/> <!-- Wood -->
+    </Craft>
+    <!-- Iron body -->
+    <Craft Type="3" ResultID="49">
+        <Ingredient ID="12" Count="500"/> <!-- Iron ore -->
+        <Ingredient ID="0" Count="150"/> <!-- Wood -->
+    </Craft>
+    <!-- Iron feet -->
+    <Craft Type="3" ResultID="60">
+        <Ingredient ID="12" Count="400"/> <!-- Iron ore -->
+        <Ingredient ID="0" Count="120"/> <!-- Wood -->
+    </Craft>
+    <!-- Gold body -->
+    <Craft Type="3" ResultID="50">
+        <Ingredient ID="13" Count="500"/> <!-- Gold ore -->
+        <Ingredient ID="0" Count="150"/> <!-- Wood -->
+    </Craft>
+    <!-- Gold feet -->
+    <Craft Type="3" ResultID="61">
+        <Ingredient ID="13" Count="400"/> <!-- Gold ore -->
+        <Ingredient ID="0" Count="120"/> <!-- Wood -->
+    </Craft>
+    <!-- Diamond body -->
+    <Craft Type="3" ResultID="51">
+        <Ingredient ID="14" Count="500"/> <!-- Diamond ore -->
+        <Ingredient ID="0" Count="150"/> <!-- Wood -->
+    </Craft>
+    <!-- Diamond feet -->
+    <Craft Type="3" ResultID="62">
+        <Ingredient ID="14" Count="400"/> <!-- Diamond ore -->
+        <Ingredient ID="0" Count="120"/> <!-- Wood -->
+    </Craft>
+    <!-- Obsidian body -->
+    <Craft Type="3" ResultID="52">
+        <Ingredient ID="15" Count="500"/> <!-- Obsidian -->
+        <Ingredient ID="0" Count="150"/> <!-- Wood -->
+    </Craft>
+    <!-- Obsidian feet -->
+    <Craft Type="3" ResultID="63">
+        <Ingredient ID="15" Count="400"/> <!-- Obsidian -->
+        <Ingredient ID="0" Count="120"/> <!-- Wood -->
+    </Craft>
+    <!-- Mithril body -->
+    <Craft Type="3" ResultID="53">
+        <Ingredient ID="35" Count="80"/> <!-- Mithril ingot -->
+        <Ingredient ID="0" Count="180"/> <!-- Wood -->
+    </Craft>
+    <!-- Mithril feet -->
+    <Craft Type="3" ResultID="64">
+        <Ingredient ID="35" Count="60"/> <!-- Mithril ingot -->
+        <Ingredient ID="0" Count="150"/> <!-- Wood -->
+    </Craft>
+    <!-- Orihalcium body -->
+    <Craft Type="3" ResultID="54">
+        <Ingredient ID="36" Count="80"/> <!-- Orihalcium ingot -->
+        <Ingredient ID="0" Count="180"/> <!-- Wood -->
+    </Craft>
+    <!-- Orihalcium feet -->
+    <Craft Type="3" ResultID="65">
+        <Ingredient ID="36" Count="60"/> <!-- Orihalcium ingot -->
+        <Ingredient ID="0" Count="150"/> <!-- Wood -->
+    </Craft>
+    <!-- Adamantite body -->
+    <Craft Type="3" ResultID="55">
+        <Ingredient ID="37" Count="80"/> <!-- Adamantite ingot -->
+        <Ingredient ID="0" Count="180"/> <!-- Wood -->
+    </Craft>
+    <!-- Adamantite feet -->
+    <Craft Type="3" ResultID="66">
+        <Ingredient ID="37" Count="60"/> <!-- Adamantite ingot -->
+        <Ingredient ID="0" Count="150"/> <!-- Wood -->
+    </Craft>
+    <!-- Titanium body -->
+    <Craft Type="3" ResultID="56">
+        <Ingredient ID="38" Count="80"/> <!-- Titanium ingot -->
+        <Ingredient ID="0" Count="180"/> <!-- Wood -->
+    </Craft>
+    <!-- Titanium feet -->
+    <Craft Type="3" ResultID="67">
+        <Ingredient ID="38" Count="60"/> <!-- Titanium ingot -->
+        <Ingredient ID="0" Count="150"/> <!-- Wood -->
+    </Craft>
+    <!-- Dragon body -->
+    <Craft Type="3" ResultID="57">
+        <Ingredient ID="39" Count="80"/> <!-- Dragon ingot -->
+        <Ingredient ID="0" Count="180"/> <!-- Wood -->
+    </Craft>
+    <!-- Dragon feet -->
+    <Craft Type="3" ResultID="68">
+        <Ingredient ID="39" Count="60"/> <!-- Dragon ingot -->
+        <Ingredient ID="0" Count="150"/> <!-- Wood -->
+    </Craft>
+    <!-- Astralium body -->
+    <Craft Type="3" ResultID="58">
+        <Ingredient ID="40" Count="80"/> <!-- Astralium ingot -->
+        <Ingredient ID="0" Count="180"/> <!-- Wood -->
+    </Craft>
+    <!-- Astralium feet -->
+    <Craft Type="3" ResultID="69">
+        <Ingredient ID="40" Count="60"/> <!-- Astralium ingot -->
+        <Ingredient ID="0" Count="150"/> <!-- Wood -->
+    </Craft>
+</Crafts>

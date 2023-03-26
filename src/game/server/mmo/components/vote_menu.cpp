@@ -107,6 +107,21 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 		MMOCore()->BuyItem(ClientID, Value1);
 		RebuildMenu(ClientID);
 	}
+	else if (str_scan(aCmd, "craft_list%d", &Value1))
+	{
+		ListCrafts(ClientID, Value1);
+	}
+	else if (str_scan(aCmd, "craft%d", &Value1))
+	{
+		int Count = 1;
+		try
+		{
+			Count = std::stoi(pMsg->m_pReason);
+		} catch(std::exception &e) {}
+
+		MMOCore()->CraftItem(ClientID, Value1, Count);
+		RebuildMenu(ClientID);
+	}
 }
 
 void CVoteMenu::OnPlayerLeft(int ClientID)
@@ -197,12 +212,37 @@ void CVoteMenu::RebuildMenu(int ClientID)
 				AddMenuVote(ClientID, "null", aBuf);
 			}
 		}
+
+		if (pChr && pChr->m_InCraft)
+		{
+			char aCmd[256];
+
+			AddMenuVote(ClientID, "null", "------------ Craft");
+
+			for (SCraftData &Entry : MMOCore()->GetCrafts())
+			{
+				str_format(aBuf, sizeof(aBuf), "☞ %s",
+					MMOCore()->GetItemName(Entry.m_ID));
+				str_format(aCmd, sizeof(aCmd), "craft%d", Entry.m_ID);
+				AddMenuVote(ClientID, aCmd, aBuf);
+
+				for (SCraftIngredient Ingredient : Entry.m_vIngredients)
+				{
+					str_format(aBuf, sizeof(aBuf), "- %s x%d",
+						MMOCore()->GetItemName(Ingredient.m_ID), Ingredient.m_Count);
+					AddMenuVote(ClientID, "null", aBuf);
+				}
+
+				AddMenuVote(ClientID, "null", "");
+			}
+		}
 	}
 	else if (Menu == MENU_INFO)
 	{
 		AddMenuVote(ClientID, "null", "------------ Info about server");
 		AddMenuVote(ClientID, "null", "Code with ♥ by Myr, based on DDNet by DDNet staff");
 		AddMenuVote(ClientID, "null", "Idea and MMOTee azataz by Kurosio");
+		AddMenuVote(ClientID, "null", "Hosted by Tee 3D");
 		AddMenuVote(ClientID, "null", "Discord: https://discord.gg/3KrNyerWtx");
 
 		AddBack(ClientID, MENU_MAIN);
@@ -331,4 +371,9 @@ void CVoteMenu::ItemInfo(int ClientID, int ItemID)
 	AddMenuVote(ClientID, aBuf, "☞ Destroy");
 
 	AddBack(ClientID, MENU_INVENTORY);
+}
+
+void CVoteMenu::ListCrafts(int ClientID, int Type)
+{
+
 }

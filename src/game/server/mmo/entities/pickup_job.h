@@ -10,7 +10,7 @@ enum
 	PICKUP_JOB_TYPE_WOOD,
 
 	PICKUP_JOB_STATE_MAGNITUDE = 2,
-	PICKUP_JOB_SPAWN_CD = 20
+	PICKUP_JOB_SPAWN_CD = 30
 };
 
 class CPickupJob : public CEntity

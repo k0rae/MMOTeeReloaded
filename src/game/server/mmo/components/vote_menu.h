@@ -26,6 +26,7 @@ class CVoteMenu : public CServerComponent
 
 	void ListInventory(int ClientID, int Type);
 	void ItemInfo(int ClientID, int ItemID);
+	void ListCrafts(int ClientID, int Type);
 
 public:
 	CVoteMenu();

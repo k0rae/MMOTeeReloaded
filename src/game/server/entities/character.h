@@ -254,6 +254,7 @@ public:
 	void SetNoDamage(bool State) { m_NoDamage = State; }
 
 	bool m_InShop;
+	bool m_InCraft;
 
 private:
 	bool m_NoDamage;

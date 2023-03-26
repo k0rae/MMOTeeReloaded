@@ -131,6 +131,38 @@ void CMMOCore::Init(CGameContext *pGameServer)
 
 		m_vArmorDatas.push_back(Data);
 	}
+
+	// Load armors from mmo/crafts.xml
+	ParseResult = Document.load_file("mmo/crafts.xml");
+
+	if (!ParseResult)
+	{
+		dbg_msg("xml", "source file 'mmo/crafts.xml' parsed with errors!");
+		dbg_msg("xml", "error: %s", ParseResult.description());
+
+		dbg_break();
+	}
+
+	Root = Document.child("Crafts");
+
+	for (xml_node Node : Root)
+	{
+		SCraftData Craft;
+		Craft.m_Type = Node.attribute("Type").as_int(0);
+		Craft.m_ID = Node.attribute("ResultID").as_int(-1);
+
+		// Load ingredients
+		for (xml_node Ingredient : Node)
+		{
+			SCraftIngredient ingredient;
+			ingredient.m_ID = Ingredient.attribute("ID").as_int(-1);
+			ingredient.m_Count = Ingredient.attribute("Count").as_int(0);
+
+			Craft.m_vIngredients.push_back(ingredient);
+		}
+
+		m_vCrafts.push_back(Craft);
+	}
 }
 
 int CMMOCore::GetNextBotSnapID(int ClientID)
@@ -596,4 +628,38 @@ void CMMOCore::ResetTeeInfo(int ClientID)
 	pPly->m_TeeInfos.m_UseCustomColor = 1;
 	pPly->m_TeeInfos.m_ColorBody = ArmorColor(EquippedBody);
 	pPly->m_TeeInfos.m_ColorFeet = ArmorColor(EquippedFeet);
+}
+
+void CMMOCore::CraftItem(int ClientID, int ItemID, int Count)
+{
+	if (ClientID < 0 || ClientID >= MAX_PLAYERS)
+		return;
+	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+	if (!pPly || !pPly->m_LoggedIn)
+		return;
+
+	// Get craft by result id
+	auto it = std::find_if(m_vCrafts.begin(), m_vCrafts.end(), [&](SCraftData &Craft) {
+		return (Craft.m_ID == ItemID);
+	});
+
+	if (it == m_vCrafts.end())
+		return;
+
+	// Check for ingredients
+	for (SCraftIngredient Ingredient : it->m_vIngredients)
+	{
+		if (pPly->m_AccInv.ItemCount(Ingredient.m_ID) < Ingredient.m_Count * Count)
+		{
+			GameServer()->SendChatTarget(ClientID, "You don't have needed items");
+			return;
+		}
+	}
+
+	for (SCraftIngredient Ingredient : it->m_vIngredients)
+	{
+		pPly->m_AccInv.RemItem(Ingredient.m_ID, Ingredient.m_Count * Count);
+	}
+
+	GiveItem(ClientID, ItemID, Count);
 }
