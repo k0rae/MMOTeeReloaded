@@ -88,7 +88,7 @@ void CDummyBase::Die(int Killer)
 	m_Alive = false;
 	m_SpawnTick = Server()->Tick() + Server()->TickSpeed();
 
-	if (Killer >= 0 && rand() % 3 == 0)
+	if (Killer >= 0 && rand() % 2 == 0)
 	{
 		int Level = 1;
 
@@ -102,7 +102,7 @@ void CDummyBase::Die(int Killer)
 			m_Pos,
 			m_Core.m_Vel + vec2(RandomForce, RandomForce),
 			(rand() % 2 == 0) ? PICKUP_PHYS_TYPE_XP : PICKUP_PHYS_TYPE_MONEY,
-			10 * sqrt(Level));
+			10 * sqrt(Level) * (sqrt(m_Level) * 2));
 	}
 
 	GameServer()->CreateDeath(m_Pos, 0);

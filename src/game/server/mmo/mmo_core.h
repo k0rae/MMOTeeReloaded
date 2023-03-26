@@ -101,6 +101,7 @@ public:
 	std::vector<SShopEntry> &GetShopItems() { return m_vShopItems; }
 	int GetEquippedItem(int ClientID, int ItemType);
 	void SetEquippedItem(int ClientID, int ItemID, bool Equipped);
+	void DropItem(int ClientID, int ItemID, int Count);
 
 	// Upgrades
 	const char *GetUpgradeName(int UpgradeID);

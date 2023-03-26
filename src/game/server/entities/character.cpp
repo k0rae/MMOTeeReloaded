@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <game/server/mmo/dummies/dummy_base.h>
 #include <game/server/mmo/entities/pickup_job.h>
+#include <game/server/mmo/entities/pickup_phys.h>
 
 MACRO_ALLOC_POOL_ID_IMPL(CCharacter, MAX_CLIENTS)
 
@@ -520,6 +521,17 @@ void CCharacter::FireWeapon()
 			return;
 		}
 
+		// Check pickup items
+		CPickupPhys *pPickupPhys = (CPickupPhys *)GameWorld()->ClosestEntity(m_Pos, 30.f, CGameWorld::ENTTYPE_PICKUP_PHYS);
+		if (pPickupPhys && pPickupPhys->m_Type == PICKUP_PHYS_TYPE_ITEM)
+		{
+			MMOCore()->GiveItem(GetPlayer()->GetCID(), pPickupPhys->m_ItemID, pPickupPhys->m_Count);
+			pPickupPhys->Destroy();
+
+			m_ReloadTimer = Server()->TickSpeed();
+			return;
+		}
+
 		// reset objects Hit
 		m_NumObjectsHit = 0;
 		GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE, TeamMask());
@@ -825,6 +837,17 @@ void CCharacter::Tick()
 	HandleWeapons();
 
 	DDRacePostCoreTick();
+
+	if (Server()->Tick() % 10 == 0)
+	{
+		CPickupPhys *pPickupPhys = (CPickupPhys *)GameWorld()->ClosestEntity(m_Pos, 30.f, CGameWorld::ENTTYPE_PICKUP_PHYS);
+		if (pPickupPhys && pPickupPhys->m_Type == PICKUP_PHYS_TYPE_ITEM)
+		{
+			char aBuf[256];
+			str_format(aBuf, sizeof(aBuf), "Item: %s x%d", MMOCore()->GetItemName(pPickupPhys->m_ItemID), pPickupPhys->m_Count);
+			GameServer()->SendMMOBroadcast(m_pPlayer->GetCID(), 0.5f, aBuf);
+		}
+	}
 
 	// Prev input
 	m_PrevInput = m_Input;

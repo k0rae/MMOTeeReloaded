@@ -80,6 +80,18 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 		MMOCore()->SetEquippedItem(ClientID, Value1, MMOCore()->GetEquippedItem(ClientID, MMOCore()->GetItemType(Value1)) == -1);
 		RebuildMenu(ClientID);
 	}
+	else if (str_scan(aCmd, "inv_item_drop%d", &Value1))
+	{
+		int Count = 1;
+		try
+		{
+			Count = std::stoi(pMsg->m_pReason);
+		} catch(std::exception &e) {}
+
+		m_aPlayersMenu[ClientID] = MENU_INVENTORY;
+		RebuildMenu(ClientID);
+		MMOCore()->DropItem(ClientID, Value1, Count);
+	}
 	else if (str_scan(aCmd, "upgr%d", &Value1))
 	{
 		int Count = 1;

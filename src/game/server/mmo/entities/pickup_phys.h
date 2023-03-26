@@ -12,6 +12,8 @@ enum
 
 class CPickupPhys : public CEntity
 {
+	friend class CCharacter;
+
 	vec2 m_Vel;
 	int m_Type;
 	int m_ItemID;

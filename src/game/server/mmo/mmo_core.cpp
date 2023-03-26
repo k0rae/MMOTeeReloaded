@@ -1,9 +1,11 @@
 #include "mmo_core.h"
 
 #include "dummies/dummy_base.h"
+#include "entities/pickup_phys.h"
 
 #include <game/server/gamecontext.h>
 #include <game/server/player.h>
+#include <game/server/entities/character.h>
 
 #include <engine/external/xml/pugixml.hpp>
 #include <engine/shared/config.h>
@@ -491,6 +493,38 @@ void CMMOCore::SetEquippedItem(int ClientID, int ItemID, bool Equipped)
 
 	// Reset tee info for apply new items
 	ResetTeeInfo(ClientID);
+}
+
+void CMMOCore::DropItem(int ClientID, int ItemID, int Count)
+{
+	if (ClientID < 0 || ClientID >= MAX_PLAYERS)
+		return;
+	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+	if (!pPly || !pPly->m_LoggedIn)
+		return;
+	CCharacter *pChr = pPly->GetCharacter();
+	if (!pChr)
+		return;
+
+	// Check for item count
+	int ItemCount = pPly->m_AccInv.ItemCount(ItemID);
+	if (Count > ItemCount)
+		Count = ItemCount;
+
+	if (Count == 0)
+		return;
+
+	// Create item drop
+	new CPickupPhys(
+		GameWorld(),
+		pChr->m_Pos,
+		vec2(0, 0),
+		PICKUP_PHYS_TYPE_ITEM,
+		Count,
+		ItemID);
+
+	// Rem item from inventory
+	pPly->m_AccInv.RemItem(ItemID, Count);
 }
 
 const char *CMMOCore::GetUpgradeName(int UpgradeID)

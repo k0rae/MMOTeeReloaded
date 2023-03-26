@@ -118,10 +118,12 @@ private:
 	CNetObj_PlayerInput m_LatestInput;
 
 	// input
+public:
 	CNetObj_PlayerInput m_PrevInput;
 	CNetObj_PlayerInput m_Input;
 	CNetObj_PlayerInput m_SavedInput;
 	int m_NumInputs;
+private:
 
 	int m_DamageTakenTick;
 
