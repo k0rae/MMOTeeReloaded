@@ -87,6 +87,10 @@ void CPickupJob::Damage(int ClientID)
 
 			MMOCore()->GiveItem(ClientID, Item, 1);
 		}
+		else if (m_Type == PICKUP_JOB_TYPE_WOOD)
+		{
+			MMOCore()->GiveItem(ClientID, ITEM_WOOD, 1 + rand() % 3);
+		}
 
 		// Give exp
 		if (WorkID != -1)

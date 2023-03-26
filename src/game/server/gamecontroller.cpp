@@ -226,6 +226,8 @@ bool IGameController::OnQuadEntity(const char *pLayerName, vec2 Pivot, vec2 *pPo
 		new CPickupJob(&GameServer()->m_World, Pos, PICKUP_JOB_TYPE_FARM);
 	else if (!str_comp(pLayerName, "Mine"))
 		new CPickupJob(&GameServer()->m_World, Pos, PICKUP_JOB_TYPE_MINE);
+	else if (!str_comp(pLayerName, "Wood"))
+		new CPickupJob(&GameServer()->m_World, Pos, PICKUP_JOB_TYPE_WOOD);
 
 	return false;
 }
