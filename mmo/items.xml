@@ -7,6 +7,8 @@
     <!-- 3 - Artifacts -->
     <!-- 4 - Weapon -->
     <!-- 5 - Other -->
+    <!-- 6 - Armor body -->
+    <!-- 7 - Armor feet -->
     <!-- Rarity: -->
     <!-- 0 - Common -->
     <!-- 1 - Uncommon -->
@@ -68,4 +70,29 @@
     <Item ID="45" Type="4" Rarity="1" Name="SGun"/>
     <Item ID="46" Type="4" Rarity="0" Name="Auto hammer"/>
     <Item ID="47" Type="4" Rarity="0" Name="Auto gun"/>
+    <!-- Armors -->
+    <!-- Body -->
+    <Item ID="48" Type="6" Rarity="0" Name="Copper body"/>
+    <Item ID="49" Type="6" Rarity="0" Name="Iron body"/>
+    <Item ID="50" Type="6" Rarity="0" Name="Gold body"/>
+    <Item ID="51" Type="6" Rarity="0" Name="Diamond body"/>
+    <Item ID="52" Type="6" Rarity="0" Name="Obsidian body"/>
+    <Item ID="53" Type="6" Rarity="1" Name="Mithril body"/>
+    <Item ID="54" Type="6" Rarity="1" Name="Orihalcium body"/>
+    <Item ID="55" Type="6" Rarity="1" Name="Adamantite body"/>
+    <Item ID="56" Type="6" Rarity="2" Name="Titanium body"/>
+    <Item ID="57" Type="6" Rarity="2" Name="Dragon body"/>
+    <Item ID="58" Type="6" Rarity="3" Name="Astralium body"/>
+    <!-- Feet -->
+    <Item ID="59" Type="7" Rarity="0" Name="Copper feet"/>
+    <Item ID="60" Type="7" Rarity="0" Name="Iron feet"/>
+    <Item ID="61" Type="7" Rarity="0" Name="Gold feet"/>
+    <Item ID="62" Type="7" Rarity="0" Name="Diamond feet"/>
+    <Item ID="63" Type="7" Rarity="0" Name="Obsidian feet"/>
+    <Item ID="64" Type="7" Rarity="1" Name="Mithril feet"/>
+    <Item ID="65" Type="7" Rarity="1" Name="Orihalcium feet"/>
+    <Item ID="66" Type="7" Rarity="1" Name="Adamantite feet"/>
+    <Item ID="67" Type="7" Rarity="2" Name="Titanium feet"/>
+    <Item ID="68" Type="7" Rarity="2" Name="Dragon feet"/>
+    <Item ID="69" Type="7" Rarity="3" Name="Astralium feet"/>
 </Items>

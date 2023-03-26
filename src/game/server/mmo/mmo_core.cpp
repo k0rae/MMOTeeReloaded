@@ -101,6 +101,36 @@ void CMMOCore::Init(CGameContext *pGameServer)
 
 		m_vBotDatas.push_back(Data);
 	}
+
+	// Load armors from mmo/armors.xml
+	ParseResult = Document.load_file("mmo/armors.xml");
+
+	if (!ParseResult)
+	{
+		dbg_msg("xml", "source file 'mmo/armors.xml' parsed with errors!");
+		dbg_msg("xml", "error: %s", ParseResult.description());
+
+		dbg_break();
+	}
+
+	Root = Document.child("Armors");
+
+	for (xml_node Node : Root)
+	{
+		xml_node Body = Node.child("Body");
+		xml_node Feet = Node.child("Feet");
+		xml_node Stats = Node.child("Stats");
+
+		SArmorData Data;
+		Data.m_BodyID = Body.attribute("ID").as_int(-1);
+		Data.m_ColorBody = Body.attribute("Color").as_int(255);
+		Data.m_FeetID = Feet.attribute("ID").as_int(-1);
+		Data.m_ColorFeet = Feet.attribute("Color").as_int(255);
+		Data.m_Health = Stats.attribute("Health").as_int(10);
+		Data.m_Armor = Stats.attribute("Armor").as_int(0);
+
+		m_vArmorDatas.push_back(Data);
+	}
 }
 
 int CMMOCore::GetNextBotSnapID(int ClientID)
@@ -381,14 +411,54 @@ void CMMOCore::BuyItem(int ClientID, int ItemID)
 	pPly->m_AccData.m_Money -= it->m_Cost;
 }
 
-bool CMMOCore::GetEquippedItem(int ClientID, int ItemType)
+int CMMOCore::GetEquippedItem(int ClientID, int ItemType)
 {
-	return false;
+	if (ClientID < 0 || ClientID >= MAX_PLAYERS)
+		return -1;
+	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+	if (!pPly || !pPly->m_LoggedIn)
+		return -1;
+
+	auto it = std::find_if(pPly->m_AccInv.m_vItems.begin(), pPly->m_AccInv.m_vItems.end(), [&](SInvItem i) {
+		return (i.m_Type == ItemType && i.m_Data);
+	});
+
+	if (it == pPly->m_AccInv.m_vItems.end())
+		return -1;
+
+	return it->m_ID;
 }
 
-void CMMOCore::SetEquippedItem(int ClientID, int ItemID)
+void CMMOCore::SetEquippedItem(int ClientID, int ItemID, bool Equipped)
 {
+	if (ClientID < 0 || ClientID >= MAX_PLAYERS)
+		return;
+	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+	if (!pPly || !pPly->m_LoggedIn)
+		return;
 
+	int ItemType = GetItemType(ItemID);
+
+	// Put off old things
+	auto it = std::find_if(pPly->m_AccInv.m_vItems.begin(), pPly->m_AccInv.m_vItems.end(), [&](SInvItem i) {
+		return (i.m_Type == ItemType && i.m_Data);
+	});
+
+	if (it != pPly->m_AccInv.m_vItems.end())
+		it->m_Data = 0; // Put off
+
+	// Put on new things
+	it = std::find_if(pPly->m_AccInv.m_vItems.begin(), pPly->m_AccInv.m_vItems.end(), [&](SInvItem i) {
+		return (i.m_ID == ItemID);
+	});
+
+	if (it == pPly->m_AccInv.m_vItems.end())
+		return;
+
+	it->m_Data = (int)Equipped;
+
+	// Reset tee info for apply new items
+	ResetTeeInfo(ClientID);
 }
 
 const char *CMMOCore::GetUpgradeName(int UpgradeID)
@@ -472,4 +542,58 @@ int CMMOCore::GetPlusDamage(int ClientID)
 	int PlusDamage = pPly->m_AccUp.m_Damage;
 
 	return PlusDamage;
+}
+
+int CMMOCore::ArmorColor(int ItemID)
+{
+	for(SArmorData Armor : m_vArmorDatas)
+	{
+		if (Armor.m_BodyID == ItemID)
+			return Armor.m_ColorBody;
+		else if (Armor.m_FeetID == ItemID)
+			return Armor.m_ColorFeet;
+	}
+
+	return 255;
+}
+
+int CMMOCore::ArmorHealth(int ItemID)
+{
+	if (ItemID == -1)
+		return 0;
+
+	for(SArmorData Armor : m_vArmorDatas)
+	{
+		if (Armor.m_BodyID == ItemID || Armor.m_FeetID == ItemID)
+			return Armor.m_Health;
+	}
+
+	return 0;
+}
+
+int CMMOCore::ArmorDefense(int ItemID)
+{
+	for(SArmorData Armor : m_vArmorDatas)
+	{
+		if (Armor.m_BodyID == ItemID || Armor.m_FeetID == ItemID)
+			return Armor.m_Armor;
+	}
+
+	return 0;
+}
+
+void CMMOCore::ResetTeeInfo(int ClientID)
+{
+	if (ClientID < 0 || ClientID >= MAX_PLAYERS)
+		return;
+	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+	if (!pPly || !pPly->m_LoggedIn)
+		return;
+
+	int EquippedBody = GetEquippedItem(pPly->GetCID(), ITEM_TYPE_ARMOR_BODY);
+	int EquippedFeet = GetEquippedItem(pPly->GetCID(), ITEM_TYPE_ARMOR_FEET);
+
+	pPly->m_TeeInfos.m_UseCustomColor = 1;
+	pPly->m_TeeInfos.m_ColorBody = ArmorColor(EquippedBody);
+	pPly->m_TeeInfos.m_ColorFeet = ArmorColor(EquippedFeet);
 }

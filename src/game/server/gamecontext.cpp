@@ -2086,6 +2086,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			m_pController->DoTeamChange(pPlayer, pMsg->m_Team);
 			m_VoteMenu.SetMenu(ClientID, MENU_MAIN);
 			m_VoteMenu.RebuildMenu(ClientID);
+			m_MMOCore.ResetTeeInfo(ClientID);
 		}
 		else if(MsgID == NETMSGTYPE_CL_ISDDNETLEGACY)
 		{
@@ -2118,11 +2119,6 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				pPlayer->m_ShowOthers = pMsg->m_Show;
 			}
 		}
-		else if(MsgID == NETMSGTYPE_CL_SHOWDISTANCE)
-		{
-			CNetMsg_Cl_ShowDistance *pMsg = (CNetMsg_Cl_ShowDistance *)pRawMsg;
-			pPlayer->m_ShowDistance = vec2(pMsg->m_X, pMsg->m_Y);
-		}
 		else if(MsgID == NETMSGTYPE_CL_SETSPECTATORMODE && !m_World.m_Paused)
 		{
 			CNetMsg_Cl_SetSpectatorMode *pMsg = (CNetMsg_Cl_SetSpectatorMode *)pRawMsg;
@@ -2148,8 +2144,6 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			if(g_Config.m_SvSpamprotection && pPlayer->m_LastChangeInfo && pPlayer->m_LastChangeInfo + Server()->TickSpeed() * g_Config.m_SvInfoChangeDelay > Server()->Tick())
 				return;
 
-			bool SixupNeedsUpdate = false;
-
 			CNetMsg_Cl_ChangeInfo *pMsg = (CNetMsg_Cl_ChangeInfo *)pRawMsg;
 			if(!str_utf8_check(pMsg->m_pName) || !str_utf8_check(pMsg->m_pClan) || !str_utf8_check(pMsg->m_pSkin))
 			{
@@ -2170,71 +2164,13 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				str_format(aChatText, sizeof(aChatText), "'%s' changed name to '%s'", aOldName, Server()->ClientName(ClientID));
 				SendChat(-1, CGameContext::CHAT_ALL, aChatText);
 
-				SixupNeedsUpdate = true;
-
 				LogEvent("Name change", ClientID);
 			}
 
-			if(str_comp(Server()->ClientClan(ClientID), pMsg->m_pClan))
-				SixupNeedsUpdate = true;
 			Server()->SetClientClan(ClientID, pMsg->m_pClan);
-
-			if(Server()->ClientCountry(ClientID) != pMsg->m_Country)
-				SixupNeedsUpdate = true;
 			Server()->SetClientCountry(ClientID, pMsg->m_Country);
 
 			str_copy(pPlayer->m_TeeInfos.m_aSkinName, pMsg->m_pSkin, sizeof(pPlayer->m_TeeInfos.m_aSkinName));
-			pPlayer->m_TeeInfos.m_UseCustomColor = pMsg->m_UseCustomColor;
-			pPlayer->m_TeeInfos.m_ColorBody = pMsg->m_ColorBody;
-			pPlayer->m_TeeInfos.m_ColorFeet = pMsg->m_ColorFeet;
-			if(!Server()->IsSixup(ClientID))
-				pPlayer->m_TeeInfos.ToSixup();
-
-			if(SixupNeedsUpdate)
-			{
-				protocol7::CNetMsg_Sv_ClientDrop Drop;
-				Drop.m_ClientID = ClientID;
-				Drop.m_pReason = "";
-				Drop.m_Silent = true;
-
-				protocol7::CNetMsg_Sv_ClientInfo Info;
-				Info.m_ClientID = ClientID;
-				Info.m_pName = Server()->ClientName(ClientID);
-				Info.m_Country = pMsg->m_Country;
-				Info.m_pClan = pMsg->m_pClan;
-				Info.m_Local = 0;
-				Info.m_Silent = true;
-				Info.m_Team = pPlayer->GetTeam();
-
-				for(int p = 0; p < 6; p++)
-				{
-					Info.m_apSkinPartNames[p] = pPlayer->m_TeeInfos.m_apSkinPartNames[p];
-					Info.m_aSkinPartColors[p] = pPlayer->m_TeeInfos.m_aSkinPartColors[p];
-					Info.m_aUseCustomColors[p] = pPlayer->m_TeeInfos.m_aUseCustomColors[p];
-				}
-
-				for(int i = 0; i < Server()->MaxClients(); i++)
-				{
-					if(i != ClientID)
-					{
-						Server()->SendPackMsg(&Drop, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
-						Server()->SendPackMsg(&Info, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
-					}
-				}
-			}
-			else
-			{
-				protocol7::CNetMsg_Sv_SkinChange Msg;
-				Msg.m_ClientID = ClientID;
-				for(int p = 0; p < 6; p++)
-				{
-					Msg.m_apSkinPartNames[p] = pPlayer->m_TeeInfos.m_apSkinPartNames[p];
-					Msg.m_aSkinPartColors[p] = pPlayer->m_TeeInfos.m_aSkinPartColors[p];
-					Msg.m_aUseCustomColors[p] = pPlayer->m_TeeInfos.m_aUseCustomColors[p];
-				}
-
-				Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, -1);
-			}
 
 			Server()->ExpireServerInfo();
 		}
@@ -2351,9 +2287,9 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		Server()->SetClientClan(ClientID, pMsg->m_pClan);
 		Server()->SetClientCountry(ClientID, pMsg->m_Country);
 		str_copy(pPlayer->m_TeeInfos.m_aSkinName, pMsg->m_pSkin, sizeof(pPlayer->m_TeeInfos.m_aSkinName));
-		pPlayer->m_TeeInfos.m_UseCustomColor = pMsg->m_UseCustomColor;
-		pPlayer->m_TeeInfos.m_ColorBody = pMsg->m_ColorBody;
-		pPlayer->m_TeeInfos.m_ColorFeet = pMsg->m_ColorFeet;
+		pPlayer->m_TeeInfos.m_UseCustomColor = 1;
+		pPlayer->m_TeeInfos.m_ColorBody = 0;
+		pPlayer->m_TeeInfos.m_ColorFeet = 0;
 		if(!Server()->IsSixup(ClientID))
 			pPlayer->m_TeeInfos.ToSixup();
 
@@ -3113,14 +3049,7 @@ void CGameContext::OnInit()
 		m_pTeeHistorianFile = aio_new(THFile);
 
 		char aVersion[128];
-		if(GIT_SHORTREV_HASH)
-		{
-			str_format(aVersion, sizeof(aVersion), "%s (%s)", GAME_VERSION, GIT_SHORTREV_HASH);
-		}
-		else
-		{
-			str_copy(aVersion, GAME_VERSION);
-		}
+		str_copy(aVersion, GAME_VERSION);
 		CTeeHistorian::CGameInfo GameInfo;
 		GameInfo.m_GameUuid = m_GameUuid;
 		GameInfo.m_pServerVersion = aVersion;
@@ -3167,9 +3096,6 @@ void CGameContext::OnInit()
 	// create all entities from the game layer
 	CreateAllEntities(true);
 	CreateEntitiesMMO();
-
-	if(GIT_SHORTREV_HASH)
-		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "git-revision", GIT_SHORTREV_HASH);
 
 #ifdef CONF_DEBUG
 	if(g_Config.m_DbgDummies)

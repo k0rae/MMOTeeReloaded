@@ -101,7 +101,12 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	// MMOTee stuff
 	m_MaxHealth = 10;
 	m_MaxArmor = 0;
+
 	m_MaxHealth += pPlayer->m_AccUp.m_Health * 40;
+	m_MaxHealth += MMOCore()->ArmorHealth(MMOCore()->GetEquippedItem(m_pPlayer->GetCID(), ITEM_TYPE_ARMOR_BODY));
+	m_MaxHealth += MMOCore()->ArmorHealth(MMOCore()->GetEquippedItem(m_pPlayer->GetCID(), ITEM_TYPE_ARMOR_FEET));
+	m_MaxArmor += MMOCore()->ArmorDefense(MMOCore()->GetEquippedItem(m_pPlayer->GetCID(), ITEM_TYPE_ARMOR_BODY));
+	m_MaxArmor += MMOCore()->ArmorDefense(MMOCore()->GetEquippedItem(m_pPlayer->GetCID(), ITEM_TYPE_ARMOR_FEET));
 
 	m_Health = m_MaxHealth;
 	m_Armor = m_MaxArmor;
@@ -454,19 +459,6 @@ void CCharacter::FireWeapon()
 
 		const float Fov = 60.f;
 		int Spray = m_pPlayer->m_AccUp.m_Spray + 1 + ((Weapon == WEAPON_SHOTGUN) ? 5 : 0);
-
-		// Create projectile
-		new CProjectile(
-			GameWorld(),
-			Weapon, // Type
-			m_pPlayer->GetCID(), // Owner
-			ProjStartPos, // Pos
-			Direction, // Dir
-			LifeTime, // Span
-			false, // Freeze
-			(Weapon == WEAPON_GRENADE), // Explosive
-			-1 // SoundImpact
-		);
 
 		// Spread
 		const float fovRad = (Fov / 2.f) * pi / 180.f;

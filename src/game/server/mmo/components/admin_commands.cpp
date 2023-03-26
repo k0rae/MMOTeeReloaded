@@ -30,8 +30,29 @@ void CAdminCommands::ConExecuteSQLGet(IConsole::IResult *pResult, void *pUserDat
 	pSelf->GameServer()->m_AccountManager.ExecAdminSQLGet(pResult->m_ClientID, RetType, pResult->GetString(1));
 }
 
+void CAdminCommands::ConGiveItem(IConsole::IResult *pResult, void *pUserData)
+{
+	CAdminCommands *pSelf = (CAdminCommands *)pUserData;
+
+	int ClientID = pResult->GetVictim();
+	int ItemID = pResult->GetInteger(1);
+	int Count = 1;
+	int Quality = QUALITY_0;
+	int Data = 0;
+
+	if (pResult->NumArguments() > 2)
+		Count = pResult->GetInteger(2);
+	if (pResult->NumArguments() > 3)
+		Quality = pResult->GetInteger(3);
+	if (pResult->NumArguments() > 4)
+		Data = pResult->GetInteger(4);
+
+	pSelf->MMOCore()->GiveItem(ClientID, ItemID, Count, Quality, Data);
+}
+
 void CAdminCommands::OnConsoleInit()
 {
 	Console()->Register("exec_sql", "s[query]", CFGFLAG_SERVER, ConExecuteSQL, this, "SQL admin management");
 	Console()->Register("exec_sql_get", "s[ret_type] s[query]", CFGFLAG_SERVER, ConExecuteSQLGet, this, "SQL admin management");
+	Console()->Register("give_item", "v[id] i[item_id] ?i[count] ?i[quality] ?i[data]", CFGFLAG_SERVER, ConGiveItem, this, "Account admin management");
 }

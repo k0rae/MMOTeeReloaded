@@ -8,6 +8,7 @@ class CAdminCommands : public CServerComponent
 {
 	static void ConExecuteSQL(IConsole::IResult *pResult, void *pUserData);
 	static void ConExecuteSQLGet(IConsole::IResult *pResult, void *pUserData);
+	static void ConGiveItem(IConsole::IResult *pResult, void *pUserData);
 
 public:
 	virtual void OnConsoleInit() override;

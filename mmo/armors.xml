@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Armors>
+    <!-- Body: -->
+    <!-- ID - Item ID of body armor -->
+    <!-- Color - Tee body color of body armor -->
+    <!-- Feet: -->
+    <!-- ID - Item ID of feet armor -->
+    <!-- Color - Tee feet color of feet armor -->
+    <!-- Stats: -->
+    <!-- Health - Base health count for one of armor part -->
+    <!-- Armor - Base armor count for one of armor part -->
+
+    <!-- Copper -->
+    <Armor>
+        <Body ID="48" Color="1769246"/>
+        <Feet ID="59" Color="1769246"/>
+        <Stats Health="50" Armor="50"/>
+    </Armor>
+    <!-- Iron -->
+    <Armor>
+        <Body ID="49" Color="9240429"/>
+        <Feet ID="60" Color="9240429"/>
+        <Stats Health="750" Armor="100"/>
+    </Armor>
+    <!-- Gold -->
+    <Armor>
+        <Body ID="50" Color="2686720"/>
+        <Feet ID="61" Color="2686720"/>
+        <Stats Health="100" Armor="150"/>
+    </Armor>
+    <!-- Diamond -->
+    <Armor>
+        <Body ID="51" Color="9502464"/>
+        <Feet ID="62" Color="9502464"/>
+        <Stats Health="125" Armor="200"/>
+    </Armor>
+    <!-- Obsidian -->
+    <Armor>
+        <Body ID="52" Color="12339456"/>
+        <Feet ID="63" Color="12339456"/>
+        <Stats Health="150" Armor="250"/>
+    </Armor>
+    <!-- Mithril -->
+    <Armor>
+        <Body ID="53" Color="6881054"/>
+        <Feet ID="64" Color="6881054"/>
+        <Stats Health="200" Armor="300"/>
+    </Armor>
+    <!-- Orihalcium -->
+    <Armor>
+        <Body ID="54" Color="14221136"/>
+        <Feet ID="65" Color="14221136"/>
+        <Stats Health="300" Armor="400"/>
+    </Armor>
+    <!-- Adamantite -->
+    <Armor>
+        <Body ID="55" Color="65310"/>
+        <Feet ID="66" Color="65310"/>
+        <Stats Health="400" Armor="500"/>
+    </Armor>
+    <!-- Titanium -->
+    <Armor>
+        <Body ID="56" Color="100"/>
+        <Feet ID="67" Color="100"/>
+        <Stats Health="500" Armor="600"/>
+    </Armor>
+    <!-- Dragon -->
+    <Armor>
+        <Body ID="57" Color="15662878"/>
+        <Feet ID="68" Color="15662878"/>
+        <Stats Health="650" Armor="800"/>
+    </Armor>
+    <!-- Astralium -->
+    <Armor>
+        <Body ID="58" Color="11075358"/>
+        <Feet ID="69" Color="11075358"/>
+        <Stats Health="800" Armor="1000"/>
+    </Armor>
+</Armors>

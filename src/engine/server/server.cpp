@@ -2582,11 +2582,6 @@ int CServer::Run()
 		m_RunServer = STOPPING;
 	}
 	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "version " GAME_RELEASE_VERSION " on " CONF_PLATFORM_STRING " " CONF_ARCH_STRING);
-	if(GIT_SHORTREV_HASH)
-	{
-		str_format(aBuf, sizeof(aBuf), "git revision hash: %s", GIT_SHORTREV_HASH);
-		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
-	}
 
 	// process pending commands
 	m_pConsole->StoreCommands(false);

@@ -75,6 +75,11 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 		RebuildMenu(ClientID);
 		MMOCore()->UseItem(ClientID, Value1, Count);
 	}
+	else if (str_scan(aCmd, "inv_item_eqp%d", &Value1))
+	{
+		MMOCore()->SetEquippedItem(ClientID, Value1, MMOCore()->GetEquippedItem(ClientID, MMOCore()->GetItemType(Value1)) == -1);
+		RebuildMenu(ClientID);
+	}
 	else if (str_scan(aCmd, "upgr%d", &Value1))
 	{
 		int Count = 1;
@@ -205,6 +210,8 @@ void CVoteMenu::RebuildMenu(int ClientID)
 	else if (Menu == MENU_EQUIP)
 	{
 		AddMenuVote(ClientID, "null", "------------ Your equipment");
+		AddMenuVote(ClientID, "inv_list6", "Armor body"); // ITEM_TYPE_ARMOR_BODY = 6
+		AddMenuVote(ClientID, "inv_list7", "Armor feet"); // ITEM_TYPE_ARMOR_FEET = 7
 
 		AddBack(ClientID, MENU_MAIN);
 	}
@@ -288,8 +295,11 @@ void CVoteMenu::ItemInfo(int ClientID, int ItemID)
 
 	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
 	SInvItem Item = pPly->m_AccInv.GetItem(ItemID);
+	int ItemType = MMOCore()->GetItemType(ItemID);
 	char aBuf[256];
+	char aBuf2[256];
 
+	AddMenuVote(ClientID, "null", "Count = Reason");
 	AddMenuVote(ClientID, "null", "------------ Item menu");
 	str_format(aBuf, sizeof(aBuf), "Item: %s", MMOCore()->GetItemName(ItemID));
 	AddMenuVote(ClientID, "null", aBuf);
@@ -300,8 +310,21 @@ void CVoteMenu::ItemInfo(int ClientID, int ItemID)
 	str_format(aBuf, sizeof(aBuf), "Quality: %s", MMOCore()->GetQualityString(Item.m_Quality));
 	AddMenuVote(ClientID, "null", aBuf);
 	AddMenuVote(ClientID, "null", "");
-	str_format(aBuf, sizeof(aBuf), "inv_item_use%d", ItemID);
-	AddMenuVote(ClientID, aBuf, "☞ Use");
+
+	if (ItemType == ITEM_TYPE_USE)
+	{
+		str_format(aBuf, sizeof(aBuf), "inv_item_use%d", ItemID);
+		AddMenuVote(ClientID, aBuf, "☞ Use");
+	}
+	else if (ItemType == ITEM_TYPE_ARMOR_BODY || ItemType == ITEM_TYPE_ARMOR_FEET)
+	{
+		bool IsEquippedItem = (MMOCore()->GetEquippedItem(ClientID, ItemType) == ItemID);
+
+		str_format(aBuf, sizeof(aBuf), "inv_item_eqp%d", ItemID);
+		str_format(aBuf2, sizeof(aBuf2), "☞ %s Put %s", IsEquippedItem ? "☑" : "☐", IsEquippedItem ? "off" : "on");
+		AddMenuVote(ClientID, aBuf, aBuf2);
+	}
+
 	str_format(aBuf, sizeof(aBuf), "inv_item_drop%d", ItemID);
 	AddMenuVote(ClientID, aBuf, "☞ Drop");
 	str_format(aBuf, sizeof(aBuf), "inv_item_dest%d", ItemID);

@@ -32,6 +32,16 @@ struct SBotData
 	int m_AIType;
 };
 
+struct SArmorData
+{
+	int m_BodyID;
+	int m_FeetID;
+	int m_ColorBody;
+	int m_ColorFeet;
+	int m_Health;
+	int m_Armor;
+};
+
 class CGameContext;
 
 class CMMOCore
@@ -47,44 +57,56 @@ class CMMOCore
 	std::vector<SInvItem> m_vItems;
 	std::vector<SShopEntry> m_vShopItems;
 	std::vector<SBotData> m_vBotDatas;
+	std::vector<SArmorData> m_vArmorDatas;
 
 	SInvItem *GetItem(int ItemID);
 
 public:
 	void Init(CGameContext *pGameServer);
 
-	int GetExpForLevelUp(int Level);
-	int GetExpForLevelUpWork(int WorkID, int Level);
-	const char *GetWorkName(int WorkID);
-
 	void GetProgressBar(char *pStr, int StrSize, char Filler, char Empty, int Num, int MaxNum);
 
+	// Dummies / Bots
 	int GetNextBotSnapID(int ClientID);
 	void CreateDummy(vec2 Pos, int DummyType, int DummyAIType);
 	void CreateDummy(vec2 Pos, SBotData Data);
 	void ClearBotSnapIDs();
 	void OnMapBotPoint(vec2 Pos, const char *pPointName);
 
+	// Items: get info
 	const char *GetItemName(int ItemID);
 	int GetItemType(int ItemID);
 	int GetItemRarity(int ItemID);
 	const char *GetQualityString(int Quality);
 	const char *GetRarityString(int Rarity);
 
+	// Items: set info
 	void GiveItem(int ClientID, int ItemID, int Count = 1, int Quality = QUALITY_0, int Data = 0);
 	void UseItem(int ClientID, int ItemID, int Count);
 	void BuyItem(int ClientID, int ItemID);
 	std::vector<SShopEntry> &GetShopItems() { return m_vShopItems; }
-	bool GetEquippedItem(int ClientID, int ItemType);
-	void SetEquippedItem(int ClientID, int ItemID);
+	int GetEquippedItem(int ClientID, int ItemType);
+	void SetEquippedItem(int ClientID, int ItemID, bool Equipped);
 
+	// Upgrades
 	const char *GetUpgradeName(int UpgradeID);
 	int GetUpgradeCost(int UpgradeID);
 
+	// Works
 	int _GetMinerLevelID(int Level);
 	int GetRandomMinerItemByLevel(int Level);
+	int GetExpForLevelUp(int Level);
+	int GetExpForLevelUpWork(int WorkID, int Level);
+	const char *GetWorkName(int WorkID);
 
+	// Damage
 	int GetPlusDamage(int ClientID);
+
+	// Armor
+	int ArmorColor(int ItemID);
+	int ArmorHealth(int ItemID);
+	int ArmorDefense(int ItemID);
+	void ResetTeeInfo(int ClientID);
 };
 
 #endif // GAME_SERVER_MMO_MMO_CORE_H
