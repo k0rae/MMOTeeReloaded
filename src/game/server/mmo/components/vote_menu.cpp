@@ -70,6 +70,9 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 		{
 			Count = std::stoi(pMsg->m_pReason);
 		} catch(std::exception &e) {}
+		
+		if (Count <= 0)
+			return;
 
 		m_aPlayersMenu[ClientID] = MENU_INVENTORY;
 		RebuildMenu(ClientID);
@@ -87,6 +90,9 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 		{
 			Count = std::stoi(pMsg->m_pReason);
 		} catch(std::exception &e) {}
+		
+		if (Count <= 0)
+			return;
 
 		m_aPlayersMenu[ClientID] = MENU_INVENTORY;
 		RebuildMenu(ClientID);
@@ -99,6 +105,9 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 		{
 			Count = std::stoi(pMsg->m_pReason);
 		} catch(std::exception &e) {}
+		
+		if (Count <= 0)
+			return;
 
 		CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
 
@@ -130,6 +139,9 @@ void CVoteMenu::OnMessage(int ClientID, int MsgID, void *pRawMsg, bool InGame)
 		{
 			Count = std::stoi(pMsg->m_pReason);
 		} catch(std::exception &e) {}
+		
+		if (Count <= 0)
+			return;
 
 		MMOCore()->CraftItem(ClientID, Value1, Count);
 		RebuildMenu(ClientID);
