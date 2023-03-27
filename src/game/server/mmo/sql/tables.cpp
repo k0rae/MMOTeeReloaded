@@ -17,6 +17,7 @@ bool IDbConnection::CreateTablesMMO(char *pError, int ErrorSize)
 	CREATE_TABLE(Inventories)
 	CREATE_TABLE(Works)
 	CREATE_TABLE(Upgrades)
+	CREATE_TABLE(Clans)
 
 #undef CREATE_TABLE
 
@@ -33,7 +34,9 @@ void IDbConnection::FormatCreateAccounts(char *aBuf, unsigned int BufferSize)
 		"  level INTEGER DEFAULT 1, "
 		"  exp INTEGER DEFAULT 0, "
 		"  money INTEGER DEFAULT 0, "
-		"  donate INTEGER DEFAULT 0"
+		"  donate INTEGER DEFAULT 0, "
+		"  clan_id INTEGER DEFAULT 0, "
+		"  create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
 		")",
 		MAX_LOGIN_LENGTH, MD5_MAXSTRSIZE);
 }
@@ -79,4 +82,25 @@ void IDbConnection::FormatCreateUpgrades(char *aBuf, unsigned int BufferSize)
 		"  spray INTEGER NOT NULL DEFAULT 0, "
 		"  mana INTEGER NOT NULL DEFAULT 0"
 		")");
+}
+
+void IDbConnection::FormatCreateClans(char *aBuf, unsigned int BufferSize)
+{
+	str_format(aBuf, BufferSize,
+		"CREATE TABLE IF NOT EXISTS clans ("
+		"  id INTEGER NOT NULL PRIMARY KEY, "
+		"  name VARCHAR(%d) NOT NULL, "
+		"  leader_id INTEGER NOT NULL DEFAULT 0, "
+		"  level INTEGER NOT NULL DEFAULT 1, "
+		"  exp INTEGER NOT NULL DEFAULT 0, "
+		"  max_num INTEGER NOT NULL DEFAULT 2, "
+		"  money INTEGER NOT NULL DEFAULT 0, "
+		"  money_add INTEGER NOT NULL DEFAULT 0, "
+		"  exp_add INTEGER NOT NULL DEFAULT 0, "
+		"  spawn_house INTEGER NOT NULL DEFAULT 0, "
+		"  chair_house INTEGER NOT NULL DEFAULT 0, "
+		"  house_id INTEGER NOT NULL DEFAULT -1, "
+		"  create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+		")",
+		16);
 }

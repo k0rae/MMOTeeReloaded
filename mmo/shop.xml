@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Shop>
     <Item ID="41" Cost="100" Level="5"/> <!-- Gun -->
-    <Item ID="42" Cost="300" Level="8"/> <!-- Grenade -->
-    <Item ID="43" Cost="500" Level="15"/> <!-- Shotgun -->
-    <Item ID="44" Cost="700" Level="20"/> <!-- Laser -->
-    <Item ID="45" Cost="100000" Level="120"/> <!-- SGun -->
-    <Item ID="46" Cost="2000" Level="20"/> <!-- Auto hammer -->
-    <Item ID="47" Cost="1000" Level="10"/> <!-- Auto gun -->
+    <Item ID="42" Cost="400" Level="8"/> <!-- Grenade -->
+    <Item ID="43" Cost="700" Level="15"/> <!-- Shotgun -->
+    <Item ID="44" Cost="1000" Level="20"/> <!-- Laser -->
+    <Item ID="45" Cost="250000" Level="120"/> <!-- SGun -->
+    <Item ID="46" Cost="4000" Level="20"/> <!-- Auto hammer -->
+    <Item ID="47" Cost="1500" Level="10"/> <!-- Auto gun -->
 </Shop>

@@ -515,6 +515,10 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 		if(g_Config.m_SvDemoChat)
 			Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NOSEND, SERVER_DEMO_CLIENT);
 
+		// ping @everyone in game chat for admins
+		bool IsPlayer = (ChatterClientID >= 0 && ChatterClientID < MAX_CLIENTS);
+		bool IsEveryone = (IsPlayer && Server()->ClientAuthed(ChatterClientID)) && str_find_nocase(Msg.m_pMessage, "@everyone");
+
 		// send to the clients
 		for(int i = 0; i < Server()->MaxClients(); i++)
 		{
@@ -522,6 +526,13 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 				continue;
 			bool Send = (Server()->IsSixup(i) && (Flags & CHAT_SIXUP)) ||
 				    (!Server()->IsSixup(i) && (Flags & CHAT_SIX));
+
+			if (IsEveryone)
+			{
+				char aEveryBuf[256];
+				str_format(aEveryBuf, 256, "%s. %s", Server()->ClientName(i), aText);
+				Msg.m_pMessage = aEveryBuf;
+			}
 
 			if(!m_apPlayers[i]->m_DND && Send)
 				Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);

@@ -2,6 +2,9 @@
 
 #include <engine/shared/config.h>
 #include <game/server/gamecontext.h>
+#include <game/server/player.h>
+
+bool CheckClientID(int ClientID);
 
 void CAdminCommands::ConExecuteSQL(IConsole::IResult *pResult, void *pUserData)
 {
@@ -48,6 +51,19 @@ void CAdminCommands::ConGiveItem(IConsole::IResult *pResult, void *pUserData)
 		Data = pResult->GetInteger(4);
 
 	pSelf->MMOCore()->GiveItem(ClientID, ItemID, Count, Quality, Data);
+}
+
+void CAdminCommands::ConSetLevel(IConsole::IResult *pResult, void *pUserData)
+{
+	CAdminCommands *pSelf = (CAdminCommands *)pUserData;
+	int ClientID = pResult->GetVictim();
+	if(!CheckClientID(ClientID))
+		return;
+	CPlayer *pPly = pSelf->GameServer()->m_apPlayers[ClientID];
+	if (!pPly)
+		return;
+
+	pPly->m_AccData.m_Level = pResult->GetInteger(1);
 }
 
 void CAdminCommands::OnConsoleInit()
