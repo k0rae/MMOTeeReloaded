@@ -46,6 +46,8 @@ struct SInvItem
 	int m_Data;
 	int m_Type;
 	int m_Rarity;
+	bool m_NotDroppable;
+	int m_MaxCount;
 };
 
 class CAccountInventory

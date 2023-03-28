@@ -2077,6 +2077,16 @@ void CCharacter::HandleMMOTiles(int Tile)
 
 		GameServer()->m_VoteMenu.SetMenu(ClientID, MENU_MAIN);
 		GameServer()->m_VoteMenu.RebuildMenu(ClientID);
+
+		int MaterialCount = m_pPlayer->m_AccInv.ItemCount(ITEM_MATERIAL);
+		if (MaterialCount > 0) {
+			int Money = MaterialCount / 10;
+			m_pPlayer->m_AccInv.RemItem(ITEM_MATERIAL);
+			m_pPlayer->m_AccData.m_Money += Money;
+			char aBuf[256];
+			str_format(aBuf, sizeof(aBuf), "You have sold %d materials for %d money", MaterialCount, Money);
+			GameServer()->SendChatTarget(ClientID, aBuf);
+		}
 	}
 	else if (Tile == TILE_SHOP_OFF && m_InShop)
 	{

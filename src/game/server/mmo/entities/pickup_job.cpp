@@ -36,10 +36,17 @@ void CPickupJob::Damage(int ClientID)
 	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
 
 	int WorkID = -1;
+	int GainXP = 1;
 	if (m_Type == PICKUP_JOB_TYPE_FARM)
 		WorkID = WORK_FARMER;
-	if (m_Type == PICKUP_JOB_TYPE_MINE)
+	else if (m_Type == PICKUP_JOB_TYPE_MINE)
+	{
 		WorkID = WORK_MINER;
+	}
+	else if (m_Type == PICKUP_JOB_TYPE_MATERIAL) {
+		GainXP = 10;
+		WorkID = WORK_MATERIAL;
+	}
 
 	m_DestroyProgress += 20;
 
@@ -96,12 +103,20 @@ void CPickupJob::Damage(int ClientID)
 		{
 			MMOCore()->GiveItem(ClientID, ITEM_WOOD, 1 + rand() % 3);
 		}
+		else if (m_Type == PICKUP_JOB_TYPE_MATERIAL)
+		{
+			if (!MMOCore()->GiveItem(ClientID, ITEM_MATERIAL, 25 + pPly->m_AccWorks.m_aWorks[WorkID].m_Level * 3)) {
+				str_format(aBuf, sizeof(aBuf), "You have reached the maximum amount of materials. Go sell them in a shop!");
+				GameServer()->SendChatTarget(ClientID, aBuf);
+				return;
+			}
+		}
 
 		// Give exp
 		if (WorkID != -1)
 		{
-			pPly->AddWorkEXP(WorkID, 1);
-			str_format(aBuf, sizeof(aBuf), "+1 %s work exp", MMOCore()->GetWorkName(WorkID));
+			pPly->AddWorkEXP(WorkID, GainXP);
+			str_format(aBuf, sizeof(aBuf), "+%d %s work exp", GainXP, MMOCore()->GetWorkName(WorkID));
 			GameServer()->SendChatTarget(ClientID, aBuf);
 		}
 	}

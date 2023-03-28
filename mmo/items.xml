@@ -97,4 +97,5 @@
     <Item ID="69" Type="7" Rarity="3" Name="Astralium feet"/>
 
     <Item ID="70" Type="2" Rarity="0" Name="Money bag"/>
+    <Item ID="83" Type="0" Rarity="0" Name="Material" NotDroppable="true" MaxCount="6000"/>
 </Items>

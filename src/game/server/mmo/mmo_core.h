@@ -91,11 +91,13 @@ public:
 	const char *GetItemName(int ItemID);
 	int GetItemType(int ItemID);
 	int GetItemRarity(int ItemID);
+	bool IsItemNotDroppable(int ItemID);
+	int GetItemMaxCount(int ItemID);
 	const char *GetQualityString(int Quality);
 	const char *GetRarityString(int Rarity);
 
 	// Items: set info
-	void GiveItem(int ClientID, int ItemID, int Count = 1, int Quality = QUALITY_0, int Data = 0);
+	bool GiveItem(int ClientID, int ItemID, int Count = 1, int Quality = QUALITY_0, int Data = 0);
 	void UseItem(int ClientID, int ItemID, int Count);
 	void BuyItem(int ClientID, int ItemID);
 	std::vector<SShopEntry> &GetShopItems() { return m_vShopItems; }
