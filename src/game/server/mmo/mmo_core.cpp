@@ -405,6 +405,10 @@ void CMMOCore::UseItem(int ClientID, int ItemID, int Count)
 		pPly->m_AccData.m_Money += Rand;
 		Value = Rand;
 	}
+	else if (ItemID == ITEM_FARMER_BOX)
+	{
+
+	}
 
 	// Notify clients
 	char aResultText[256] = {'\0'};
