@@ -40,6 +40,8 @@ void CMMOCore::Init(CGameContext *pGameServer)
 		Item.m_ID = Node.attribute("ID").as_int(-1);
 		Item.m_Type = Node.attribute("Type").as_int(-1);
 		Item.m_Rarity = Node.attribute("Rarity").as_int(-1);
+		Item.m_NotDroppable = Node.attribute("NotDroppable").as_bool(false);
+		Item.m_MaxCount = Node.attribute("MaxCount").as_int(-1);
 		str_copy(Item.m_aName, Node.attribute("Name").as_string("[ERROR ITEM]"));
 
 		m_vItems.push_back(Item);
@@ -256,7 +258,7 @@ int CMMOCore::GetExpForLevelUpWork(int WorkID, int Level)
 	{
 	case WORK_FARMER: return g_Config.m_SvFarmXPCount;
 	case WORK_MINER: return g_Config.m_SvMineXPCount;
-	case WORK_MATERIAL: return 100;
+	case WORK_MATERIAL: return 1000;
 	case WORK_FISHER: return 100;
 	}
 
@@ -311,6 +313,18 @@ int CMMOCore::GetItemType(int ItemID)
 	return pItem ? pItem->m_Type : -1;
 }
 
+bool CMMOCore::IsItemNotDroppable(int ItemID)
+{
+	SInvItem *pItem = GetItem(ItemID);
+	return pItem ? pItem->m_NotDroppable : false;
+}
+
+int CMMOCore::GetItemMaxCount(int ItemID)
+{
+	SInvItem *pItem = GetItem(ItemID);
+	return pItem ? pItem->m_MaxCount : -1;
+}
+
 int CMMOCore::GetItemRarity(int ItemID)
 {
 	SInvItem *pItem = GetItem(ItemID);
@@ -346,27 +360,37 @@ const char *CMMOCore::GetRarityString(int Rarity)
 	return "[UNKNOWN RARITY]";
 }
 
-void CMMOCore::GiveItem(int ClientID, int ItemID, int Count, int Quality, int Data)
+bool CMMOCore::GiveItem(int ClientID, int ItemID, int Count, int Quality, int Data)
 {
 	if (ClientID < 0 || ClientID >= MAX_PLAYERS)
-		return;
+		return false;
 	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
 	if (!pPly || !pPly->m_LoggedIn)
-		return;
+		return false;
 
 	SInvItem Item;
 	Item.m_Rarity = GetItemRarity(ItemID);
 	Item.m_Type = GetItemType(ItemID);
+	Item.m_NotDroppable = IsItemNotDroppable(ItemID);
+	Item.m_MaxCount = GetItemMaxCount(ItemID);
 	Item.m_ID = ItemID;
 	Item.m_Count = Count;
 	Item.m_Quality = Quality;
 	Item.m_Data = Data;
 
+	int CurrentItemCount = pPly->m_AccInv.ItemCount(ItemID);
+	if (CurrentItemCount == Item.m_MaxCount)
+		return false;
+	if (Item.m_MaxCount != -1 && CurrentItemCount + Count > Item.m_MaxCount )
+	{
+		Item.m_Count = Item.m_MaxCount - CurrentItemCount;
+	}
 	pPly->m_AccInv.AddItem(Item);
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "+%s x%d", GetItemName(ItemID), Count);
 	GameServer()->SendChatTarget(ClientID, aBuf);
+	return true;
 }
 
 void CMMOCore::UseItem(int ClientID, int ItemID, int Count)
@@ -512,6 +536,8 @@ void CMMOCore::DropItem(int ClientID, int ItemID, int Count)
 		return;
 	CCharacter *pChr = pPly->GetCharacter();
 	if (!pChr)
+		return;
+	if (pPly->m_AccInv.GetItem(ItemID).m_NotDroppable)
 		return;
 
 	// Check for item count

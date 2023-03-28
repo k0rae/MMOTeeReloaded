@@ -234,6 +234,8 @@ bool IGameController::OnQuadEntity(const char *pLayerName, vec2 Pivot, vec2 *pPo
 		new CMoneyBag(&GameServer()->m_World, Pos);
 	else if (!str_comp(pLayerName, "BallEffect"))
 		new CBallEffect(&GameServer()->m_World, Pos);
+	else if(!str_comp(pLayerName, "Material"))
+		new CPickupJob(&GameServer()->m_World, Pos, PICKUP_JOB_TYPE_MATERIAL);
 
 	return false;
 }
