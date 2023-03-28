@@ -76,6 +76,7 @@ void CPickupJob::Damage(int ClientID)
 		// Give items
 		if (m_Type == PICKUP_JOB_TYPE_FARM)
 		{
+			// Give vegetables
 			int Item = ITEM_CARROT;
 			int Count = pPly->m_AccWorks.m_aWorks[WorkID].m_Level;
 			Count += floor((double)Count * (m_State / 2 + 0.5f));
@@ -87,6 +88,10 @@ void CPickupJob::Damage(int ClientID)
 			}
 
 			MMOCore()->GiveItem(ClientID, Item, Count);
+
+			// Give box
+			if (rand() % 25 == 0)
+				MMOCore()->GiveItem(ClientID, ITEM_FARMER_BOX);
 		}
 		else if (m_Type == PICKUP_JOB_TYPE_MINE)
 		{

@@ -6,6 +6,8 @@ CBallEffect::CBallEffect(CGameWorld *pWorld, vec2 Pos) :
 	CEntity(pWorld, CGameWorld::ENTTYPE_BALL_EFFECT, Pos)
 {
 	m_ID2 = Server()->SnapNewID();
+
+	GameWorld()->InsertEntity(this);
 }
 
 CBallEffect::~CBallEffect()
