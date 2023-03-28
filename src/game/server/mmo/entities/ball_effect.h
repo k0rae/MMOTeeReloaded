@@ -5,7 +5,7 @@
 
 class CBallEffect : public CEntity
 {
-	constexpr static const float ms_Radius = 20.f;
+	constexpr static const float ms_Radius = 10.f;
 	int m_ID2;
 
 public:

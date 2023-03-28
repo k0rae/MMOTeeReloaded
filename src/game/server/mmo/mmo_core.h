@@ -61,10 +61,6 @@ class CMMOCore
 {
 	CGameContext *m_pGameServer;
 
-	CGameContext *GameServer() { return m_pGameServer; }
-	class IServer *Server();
-	class CGameWorld *GameWorld();
-
 	int m_aBotSnapIDs[MAX_CLIENTS];
 
 	std::vector<SInvItem> m_vItems;
@@ -76,6 +72,10 @@ class CMMOCore
 	SInvItem *GetItem(int ItemID);
 
 public:
+	CGameContext *GameServer() { return m_pGameServer; }
+	class IServer *Server();
+	class CGameWorld *GameWorld();
+
 	void Init(CGameContext *pGameServer);
 
 	void GetProgressBar(char *pStr, int StrSize, char Filler, char Empty, int Num, int MaxNum);

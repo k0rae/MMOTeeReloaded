@@ -90,7 +90,7 @@ void CPickupJob::Damage(int ClientID)
 			MMOCore()->GiveItem(ClientID, Item, Count);
 
 			// Give box
-			if (rand() % 25 == 0)
+			if (rand() % 40 == 0)
 				MMOCore()->GiveItem(ClientID, ITEM_FARMER_BOX);
 		}
 		else if (m_Type == PICKUP_JOB_TYPE_MINE)

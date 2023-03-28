@@ -9,6 +9,7 @@
 
 #include <engine/external/xml/pugixml.hpp>
 #include <engine/shared/config.h>
+#include <game/server/mmo/common/box.h>
 
 using namespace pugi;
 
@@ -316,7 +317,7 @@ int CMMOCore::GetItemType(int ItemID)
 bool CMMOCore::IsItemNotDroppable(int ItemID)
 {
 	SInvItem *pItem = GetItem(ItemID);
-	return pItem ? pItem->m_NotDroppable : false;
+	return (pItem != nullptr && pItem->m_NotDroppable);
 }
 
 int CMMOCore::GetItemMaxCount(int ItemID)
@@ -408,30 +409,52 @@ void CMMOCore::UseItem(int ClientID, int ItemID, int Count)
 	Count = clamp(Count, 1, Item.m_Count);
 
 	// Handle item use
-	if (ItemID == ITEM_CARROT)
+	switch (ItemID)
+	{
+	case ITEM_CARROT:
 	{
 		pPly->AddEXP(20 * Count);
 		Value += 20 * Count;
+		break;
 	}
-	else if (ItemID == ITEM_TOMATO)
+	case ITEM_TOMATO:
 	{
 		pPly->AddEXP(30 * Count);
 		Value += 30 * Count;
+		break;
 	}
-	else if (ItemID == ITEM_POTATO)
+	case ITEM_POTATO:
 	{
 		pPly->AddEXP(50 * Count);
 		Value += 50 * Count;
+		break;
 	}
-	else if (ItemID == ITEM_MONEY_BAG)
+	case ITEM_MONEY_BAG:
 	{
 		int Rand = (rand() % 5 + 1) * Count;
 		pPly->m_AccData.m_Money += Rand;
 		Value = Rand;
-	}
-	else if (ItemID == ITEM_FARMER_BOX)
-	{
 
+		break;
+	}
+	case ITEM_FARMER_BOX:
+	{
+		CBox Box;
+		Box.Init(this);
+		Box.AddItem(ITEM_EVENT_BOX, 5);
+		Box.AddRareItem(ITEM_JUMP_IMPULS, 50);
+		Box.Open(ClientID, Count);
+		break;
+	}
+	case ITEM_EVENT_BOX:
+	{
+		CBox Box;
+		Box.Init(this);
+		Box.AddItem(ITEM_MONEY_BAG, 1);
+		Box.AddRareItem(ITEM_RARE_HAMMER, 100);
+		Box.Open(ClientID, Count);
+		break;
+	}
 	}
 
 	// Notify clients

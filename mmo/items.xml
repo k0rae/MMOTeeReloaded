@@ -97,5 +97,18 @@
     <Item ID="69" Type="7" Rarity="3" Name="Astralium feet"/>
 
     <Item ID="70" Type="2" Rarity="0" Name="Money bag"/>
+    <Item ID="71" Type="2" Rarity="0" Name="Reset skills"/>
+    <Item ID="72" Type="3" Rarity="0" Name="Rare hammer"/>
+    <Item ID="73" Type="3" Rarity="0" Name="Module emote"/>
+    <Item ID="74" Type="4" Rarity="0" Name="Hook damage"/>
+    <Item ID="75" Type="4" Rarity="0" Name="Hook life steal"/>
+    <Item ID="76" Type="3" Rarity="1" Name="Big boom"/>
+    <Item ID="77" Type="4" Rarity="0" Name="Ghost gun"/>
+    <Item ID="78" Type="4" Rarity="0" Name="Ghost shotgun"/>
+    <Item ID="79" Type="4" Rarity="0" Name="Ghost grenade"/>
+    <Item ID="80" Type="5" Rarity="0" Name="White ticket"/>
+    <Item ID="81" Type="3" Rarity="0" Name="Jump impuls"/>
+    <Item ID="82" Type="4" Rarity="0" Name="Pizdamet"/>
     <Item ID="83" Type="0" Rarity="0" Name="Material" NotDroppable="true" MaxCount="6000"/>
+    <Item ID="84" Type="2" Rarity="0" Name="Event box"/>
 </Items>

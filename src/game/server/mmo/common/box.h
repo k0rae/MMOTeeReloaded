@@ -5,7 +5,7 @@
 
 class CMMOCore;
 
-struct SBoxItem
+struct SBoxEntry
 {
 	int m_ID;
 	int m_Count;
@@ -15,8 +15,8 @@ struct SBoxItem
 class CBox
 {
 	CMMOCore *m_pMMOCore;
-	std::vector<SBoxItem> m_vItems;
-	std::vector<SBoxItem> m_vRareItems;
+	std::vector<SBoxEntry> m_vItems;
+	std::vector<SBoxEntry> m_vRareItems;
 
 public:
 	void Init(CMMOCore *pCore);
