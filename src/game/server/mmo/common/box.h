@@ -16,11 +16,13 @@ class CBox
 {
 	CMMOCore *m_pMMOCore;
 	std::vector<SBoxItem> m_vItems;
+	std::vector<SBoxItem> m_vRareItems;
 
 public:
 	void Init(CMMOCore *pCore);
 
-	void AddItem(int ItemID, int Rand, int Count = 1);
+	void AddItem(int ItemID, int Count = 1);
+	void AddRareItem(int ItemID, int Rand, int Count = 1);
 
 	void Open(int ClientID, int Count);
 };
