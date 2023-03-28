@@ -455,6 +455,19 @@ void CMMOCore::UseItem(int ClientID, int ItemID, int Count)
 		Box.Open(ClientID, Count);
 		break;
 	}
+	case ITEM_RESET_UPGRADES:
+	{
+		Count = 1;
+		int UpgradePoints = pPly->m_AccUp.m_UpgradePoints;
+		for (int i = UPGRADE_DAMAGE; i < UPGRADES_NUM; i++) {
+			UpgradePoints += pPly->m_AccUp[i] * GetUpgradeCost(i);
+			pPly->m_AccUp[i] = 0;
+		}
+		pPly->m_AccUp.m_UpgradePoints = UpgradePoints;
+		char aBuf[256] = "You've reset your upgrade points";
+		GameServer()->SendChatTarget(pPly->GetCID(), aBuf);
+		break;
+	}
 	}
 
 	// Notify clients

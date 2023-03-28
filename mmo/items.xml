@@ -111,4 +111,5 @@
     <Item ID="82" Type="4" Rarity="0" Name="Pizdamet"/>
     <Item ID="83" Type="0" Rarity="0" Name="Material" NotDroppable="true" MaxCount="6000"/>
     <Item ID="84" Type="2" Rarity="0" Name="Event box"/>
+    <Item ID="85" Type="2" Rarity="0" Name="Reset upgrades"/>
 </Items>
