@@ -577,7 +577,7 @@ void CMMOCore::DropItem(int ClientID, int ItemID, int Count)
 	CCharacter *pChr = pPly->GetCharacter();
 	if (!pChr)
 		return;
-	if (pPly->m_AccInv.GetItem(ItemID).m_NotDroppable)
+	if (IsItemNotDroppable(ItemID))
 		return;
 
 	// Check for item count

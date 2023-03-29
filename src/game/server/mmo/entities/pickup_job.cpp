@@ -95,9 +95,10 @@ void CPickupJob::Damage(int ClientID)
 		}
 		else if (m_Type == PICKUP_JOB_TYPE_MINE)
 		{
-			int Item = MMOCore()->GetRandomMinerItemByLevel(pPly->m_AccWorks.m_aWorks[WorkID].m_Level);
+			int Level = pPly->m_AccWorks.m_aWorks[WorkID].m_Level;
+			int Item = MMOCore()->GetRandomMinerItemByLevel(Level);
 
-			MMOCore()->GiveItem(ClientID, Item, 1);
+			MMOCore()->GiveItem(ClientID, Item, 1 + ((Item <= ITEM_DIAMOND) ? Level / 15 : 0));
 		}
 		else if (m_Type == PICKUP_JOB_TYPE_WOOD)
 		{
