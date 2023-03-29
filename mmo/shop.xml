@@ -7,5 +7,5 @@
     <Item ID="45" Cost="250000" Level="120"/> <!-- SGun -->
     <Item ID="46" Cost="4000" Level="20"/> <!-- Auto hammer -->
     <Item ID="47" Cost="1500" Level="10"/> <!-- Auto gun -->
-<!--    <Item ID="85" Cost="15000" Level="30"/> Reset upgrades ? -->
+    <Item ID="85" Cost="25000" Level="40"/> <!-- Reset upgrades-->
 </Shop>
