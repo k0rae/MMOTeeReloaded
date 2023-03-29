@@ -158,6 +158,8 @@ void CPickupJob::Snap(int SnappingClient)
 	if (m_Type != PICKUP_JOB_TYPE_FARM)
 		return;
 
+	float s = sin(Server()->Tick() / 30.f);
+
 	for (int i = 0; i < 2; i++)
 	{
 		if (i + 2 > m_State)
@@ -169,7 +171,7 @@ void CPickupJob::Snap(int SnappingClient)
 		if(!pPickup2)
 			return;
 
-		pPickup2->m_X = (int)m_Pos.x + sin(Server()->Tick() / 30.f) * Magnitude + Magnitude * 2;
+		pPickup2->m_X = (int)m_Pos.x + s * Magnitude + Magnitude * 2;
 		pPickup2->m_Y = m_Pos.y - (i + 1) * 16;
 		pPickup2->m_Type = POWERUP_ARMOR;
 		pPickup2->m_Subtype = 0;

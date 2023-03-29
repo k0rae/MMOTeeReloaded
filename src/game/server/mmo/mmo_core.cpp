@@ -679,7 +679,20 @@ int CMMOCore::GetRandomMinerItemByLevel(int Level)
 int CMMOCore::GetPlusDamage(int ClientID)
 {
 	CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+
+	// Upgrade
 	int PlusDamage = pPly->m_AccUp.m_Damage;
+
+	// Crit damage
+	if (rand() % 10 == 0)
+	{
+		PlusDamage *= 1.5f;
+		PlusDamage += pPly->m_AccInv.ItemCount(ITEM_RARE_HAMMER);
+
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "♦ Crit damage: %d", PlusDamage);
+		GameServer()->SendChatTarget(ClientID, aBuf);
+	}
 
 	return PlusDamage;
 }
