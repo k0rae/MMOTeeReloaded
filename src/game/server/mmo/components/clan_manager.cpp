@@ -6,6 +6,8 @@ CDbConnectionPool *CClanManager::DBPool() { return ((CServer *)Server())->DbPool
 
 bool CClanManager::CreateClanThread(IDbConnection *pSqlServer, const ISqlData *pGameData, char *pError, int ErrorSize)
 {
+
+
 	return false;
 }
 

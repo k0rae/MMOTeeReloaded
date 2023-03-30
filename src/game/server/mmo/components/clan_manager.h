@@ -6,8 +6,8 @@
 #include <engine/server/databases/connection_pool.h>
 #include <engine/console.h>
 
-struct SClanCreateResult {};
-struct SClanDeleteResult {};
+struct SClanCreateResult;
+struct SClanDeleteResult;
 
 class CClanManager : public CServerComponent
 {
@@ -26,6 +26,47 @@ public:
 
 	void CreateClan(int ClientID, const char *pClanName);
 	void DeleteClan(int ClientID);
+};
+
+struct SClanResultBase : ISqlResult
+{
+	SClanResultBase()
+	{
+		m_aMessage[0] = '\0';
+		m_State = STATE_FAILED;
+		m_ClientID = -1;
+	}
+
+	enum
+	{
+		STATE_FAILED = -1,
+		STATE_SUCCESSFUL
+	};
+
+	int m_State;
+	char m_aMessage[512];
+	int m_ClientID;
+};
+
+struct SClanCreateResult : SClanResultBase
+{
+	SClanCreateResult()
+	{
+		m_aClanName[0] = '\0';
+	}
+
+	char m_aClanName[32];
+};
+
+struct SClanCreateRequest : ISqlData
+{
+	SClanCreateRequest(std::shared_ptr<SClanCreateResult> pResult) :
+		ISqlData(std::move(pResult))
+	{
+		m_aClanName[0] = '\0';
+	}
+
+	char m_aClanName[32];
 };
 
 #endif // GAME_SERVER_MMO_COMPONENTS_CLAN_MANAGER_H
