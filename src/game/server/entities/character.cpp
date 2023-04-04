@@ -481,7 +481,7 @@ void CCharacter::FireWeapon()
 				false, // Freeze
 				(Weapon == WEAPON_GRENADE), // Explosive
 				-1, // SoundImpact
-				true
+				m_pPlayer->m_AccInv.HaveItem(ITEM_BIG_BOOM)
 			);
 
 			if (Weapon == WEAPON_SHOTGUN && m_pPlayer->m_AccInv.HaveItem(ITEM_SGUN))
@@ -874,7 +874,7 @@ void CCharacter::TickDeferred()
 		m_ReckoningCore.Quantize();
 	}
 
-	//lastsentcore
+	// last sent core
 	vec2 StartPos = m_Core.m_Pos;
 	vec2 StartVel = m_Core.m_Vel;
 	bool StuckBefore = Collision()->TestBox(m_Core.m_Pos, CCharacterCore::PhysicalSizeVec2());
