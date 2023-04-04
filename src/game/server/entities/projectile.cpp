@@ -12,6 +12,7 @@
 #include <game/server/gamemodes/DDRace.h>
 #include <game/generated/server_data.h>
 #include <game/server/mmo/dummies/dummy_base.h>
+#include <game/server/mmo/entities/big_boom_proj.h>
 
 CProjectile::CProjectile(
 	CGameWorld *pGameWorld,
@@ -23,8 +24,7 @@ CProjectile::CProjectile(
 	bool Freeze,
 	bool Explosive,
 	int SoundImpact,
-	int Layer,
-	int Number) :
+	bool BigBoom) :
 	CEntity(pGameWorld, CGameWorld::ENTTYPE_PROJECTILE)
 {
 	m_Type = Type;
@@ -37,8 +37,7 @@ CProjectile::CProjectile(
 	m_StartTick = Server()->Tick();
 	m_Explosive = Explosive;
 
-	m_Layer = Layer;
-	m_Number = Number;
+	m_BigBoom = BigBoom;
 	m_Freeze = Freeze;
 
 	m_TuneZone = GameServer()->Collision()->IsTune(GameServer()->Collision()->GetMapIndex(m_Pos));
@@ -145,6 +144,15 @@ void CProjectile::Tick()
 					(m_Owner != -1) ? TeamMask : CClientMask().set());
 				GameServer()->CreateSound(ColPos, m_SoundImpact,
 					(m_Owner != -1) ? TeamMask : CClientMask().set());
+
+				if (m_BigBoom)
+				{
+					for (int j = 0; j < 4; j++)
+					{
+						vec2 Dir = direction(random_float() * pi * 2) * 5.f;
+						new CBigBoomProjectile(GameWorld(), PrevPos, Dir, m_Owner);
+					}
+				}
 			}
 		}
 

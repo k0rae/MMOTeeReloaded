@@ -5,6 +5,7 @@
     <!-- 1 - Work -->
     <!-- 2 - Weapon -->
     <!-- 3 - Armor -->
+    <!-- 4 - Artifact -->
 
     <!-- Resources -->
     <!-- Mithril ingot -->
@@ -201,5 +202,13 @@
     <Craft Type="3" ResultID="69">
         <Ingredient ID="40" Count="60"/> <!-- Astralium ingot -->
         <Ingredient ID="0" Count="150"/> <!-- Wood -->
+    </Craft>
+
+    <!-- Artifacts -->
+    <!-- Big boom artifact -->
+    <Craft Type="4" ResultID="76">
+        <Ingredient ID="42" Count="1"/> <!-- Grenade -->
+        <Ingredient ID="15" Count="150"/> <!-- Obsidian -->
+        <Ingredient ID="5" Count="3"/> <!-- Fire shard -->
     </Craft>
 </Crafts>

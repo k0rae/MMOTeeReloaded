@@ -18,8 +18,7 @@ public:
 		bool Freeze,
 		bool Explosive,
 		int SoundImpact,
-		int Layer = 0,
-		int Number = 0);
+		bool BigBoom = false);
 
 	vec2 GetPos(float Time);
 	void FillInfo(CNetObj_Projectile *pProj);
@@ -36,6 +35,7 @@ private:
 	int m_Owner;
 	int m_Type;
 	//int m_Damage;
+	bool m_BigBoom;
 	int m_SoundImpact;
 	int m_StartTick;
 	bool m_Explosive;

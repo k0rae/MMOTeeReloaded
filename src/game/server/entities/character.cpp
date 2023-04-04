@@ -480,7 +480,8 @@ void CCharacter::FireWeapon()
 				LifeTime, // Span
 				false, // Freeze
 				(Weapon == WEAPON_GRENADE), // Explosive
-				-1 // SoundImpact
+				-1, // SoundImpact
+				true
 			);
 
 			if (Weapon == WEAPON_SHOTGUN && m_pPlayer->m_AccInv.HaveItem(ITEM_SGUN))
@@ -848,6 +849,12 @@ void CCharacter::Tick()
 			GameServer()->SendMMOBroadcast(m_pPlayer->GetCID(), 0.5f, aBuf);
 		}
 	}
+
+	int HealthRegen = m_pPlayer->m_AccUp.m_HealthRegen;
+	float RegenTime = fmax(0.1f, 5 - HealthRegen / 15.f);
+	int Tick = Server()->Tick();
+	if(HealthRegen && Tick % (int)(Server()->TickSpeed() * RegenTime) == 0)
+		m_Health = clamp(m_Health + 50, 0, m_MaxHealth);
 
 	// Prev input
 	m_PrevInput = m_Input;

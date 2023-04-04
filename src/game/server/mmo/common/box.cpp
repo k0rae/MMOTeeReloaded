@@ -41,9 +41,7 @@ void CBox::Open(int ClientID, int Count)
 		SBoxEntry Item = m_vItems[rand() % m_vItems.size()];
 		for (SBoxEntry Rare : m_vRareItems)
 		{
-			int Rand = rand();
-			dbg_msg("a", "%d %d", Rand % Rare.m_Rand, Rare.m_Rand);
-			if (Rand % Rare.m_Rand == 0)
+			if (rand() % Rare.m_Rand == 0)
 				Item = Rare;
 		}
 
