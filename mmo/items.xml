@@ -44,17 +44,17 @@
     <Item ID="22" Type="2" Rarity="0" Name="Farmer box"/>
     <Item ID="23" Type="2" Rarity="0" Name="Miner box"/>
     <!-- Pickaxes -->
-    <Item ID="24" Type="0" Rarity="0" Name="Copper pickaxe [WIP]"/>
-    <Item ID="25" Type="0" Rarity="0" Name="Iron pickaxe [WIP]"/>
-    <Item ID="26" Type="0" Rarity="0" Name="Gold pickaxe [WIP]"/>
-    <Item ID="27" Type="0" Rarity="0" Name="Diamond pickaxe [WIP]"/>
-    <Item ID="28" Type="0" Rarity="0" Name="Obsidian pickaxe [WIP]"/>
-    <Item ID="29" Type="0" Rarity="1" Name="Mithril pickaxe [WIP]"/>
-    <Item ID="30" Type="0" Rarity="1" Name="Orihalcium pickaxe [WIP]"/>
-    <Item ID="31" Type="0" Rarity="1" Name="Adamantite pickaxe [WIP]"/>
-    <Item ID="32" Type="0" Rarity="2" Name="Titanium pickaxe [WIP]"/>
-    <Item ID="33" Type="0" Rarity="2" Name="Dragon pickaxe [WIP]"/>
-    <Item ID="34" Type="0" Rarity="3" Name="Astralium pickaxe [WIP]"/>
+    <Item ID="24" Type="0" Rarity="0" Name="Copper pickaxe"/>
+    <Item ID="25" Type="0" Rarity="0" Name="Iron pickaxe"/>
+    <Item ID="26" Type="0" Rarity="0" Name="Gold pickaxe"/>
+    <Item ID="27" Type="0" Rarity="0" Name="Diamond pickaxe"/>
+    <Item ID="28" Type="0" Rarity="0" Name="Obsidian pickaxe"/>
+    <Item ID="29" Type="0" Rarity="1" Name="Mithril pickaxe"/>
+    <Item ID="30" Type="0" Rarity="1" Name="Orihalcium pickaxe"/>
+    <Item ID="31" Type="0" Rarity="1" Name="Adamantite pickaxe"/>
+    <Item ID="32" Type="0" Rarity="2" Name="Titanium pickaxe"/>
+    <Item ID="33" Type="0" Rarity="2" Name="Dragon pickaxe"/>
+    <Item ID="34" Type="0" Rarity="3" Name="Astralium pickaxe"/>
     <!-- Ingots -->
     <Item ID="35" Type="1" Rarity="1" Name="Mithril ingot"/>
     <Item ID="36" Type="1" Rarity="1" Name="Orihalcium ingot"/>

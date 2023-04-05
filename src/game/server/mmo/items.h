@@ -1,6 +1,7 @@
 #ifndef GAME_SERVER_MMO_ITEMS_H
 #define GAME_SERVER_MMO_ITEMS_H
 
+#define PICKAXES_COUNT 11
 enum
 {
 	ITEM_WOOD,

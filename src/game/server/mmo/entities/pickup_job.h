@@ -31,6 +31,8 @@ public:
 
 	virtual void Tick() override;
 	virtual void Snap(int SnappingClient) override;
+private:
+	int GetDamage(int ClientID);
 };
 
 #endif // GAME_SERVER_MMO_ENTITIES_PICKUP_JOB_H

@@ -27,6 +27,22 @@ CPickupJob::~CPickupJob()
 			Server()->SnapFreeID(i);
 }
 
+int CPickupJob::GetDamage(int ClientID)
+{
+	int Damage = 20;
+	if (m_Type == PICKUP_JOB_TYPE_MINE) {
+		CPlayer *pPly = GameServer()->m_apPlayers[ClientID];
+		Damage = 5;
+		for (int i = ITEM_COPPER_PICKAXE; i < ITEM_COPPER_PICKAXE + PICKAXES_COUNT; i++)
+		{
+			if (pPly->m_AccInv.HaveItem(i))
+				Damage = 10 + 5 * (i - ITEM_COPPER_PICKAXE);
+		}
+	}
+
+	return Damage;
+}
+
 void CPickupJob::Damage(int ClientID)
 {
 	// WARNING: SHIT CODE!
@@ -48,7 +64,7 @@ void CPickupJob::Damage(int ClientID)
 		WorkID = WORK_MATERIAL;
 	}
 
-	m_DestroyProgress += 20;
+	m_DestroyProgress = std::min(100, m_DestroyProgress + GetDamage(ClientID));
 
 	int WorkLevel = ((WorkID == -1) ? 0 : pPly->m_AccWorks.m_aWorks[WorkID].m_Level);
 
